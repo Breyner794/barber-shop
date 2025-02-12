@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from "react";
+import {Link} from 'react-router-dom'
 
 const Hero = () => {
     
@@ -53,7 +54,9 @@ const Hero = () => {
           Expertos en estilos clásicos y modernos
         </p>
         <button className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg transition-colors">
-          Reservar tu cita
+          <Link to="/reserva">
+            Reservar tu cita
+          </Link>
         </button>
 
         {/* Indicadores de imagen actual */}

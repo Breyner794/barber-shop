@@ -7,6 +7,7 @@ import Hero from "./components/hero/Hero";
 import Services from "./components/services/Services";
 import Gallery from "./components/gallery/Gallery";
 import Contact from "./components/contact/Contact";
+import Reserva from "./components/reserva/Reserva";
 
 function App() {
   return (
@@ -24,7 +25,7 @@ function App() {
                 {/*los demas componentes*/}
               </>
             } />
-            {/* <Route path="/reservas" element={<Reservas />} /> */}
+            <Route path="/reserva" element={<Reserva />} />
           </Routes>
         </main>
         <Footer />

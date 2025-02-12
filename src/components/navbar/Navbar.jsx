@@ -20,9 +20,8 @@ const Navbar = () => {
         {/* Logo y Nombre */}
         <a href="/" className="flex items-center space-x-3">
           <img src="/src/assets/scissors.svg" className="h-12" alt="Logo Barbería" />
-          {/* Si aún no tienes logo, puedes usar solo el texto temporalmente */}
           <span className="self-center text-2xl font-semibold whitespace-nowrap text-barber-light">
-            BarberJunior
+            Caballeros del señor💈
           </span>
         </a>
 
@@ -37,10 +36,10 @@ const Navbar = () => {
         </button>
 
         {/* Menú de navegación */}
-        <div className={`${isOpen ? 'block' : 'hidden'} w-full md:block md:w-auto`}>
-          <ul className="flex flex-col p-4 md:p-0 mt-4 font-medium border rounded-lg md:space-x-8 md:flex-row md:mt-0 md:border-0 bg-barber-primary border-barber-secondary text-center">
+        <div className={`${isOpen ? 'block' : 'hidden'} w-full md:block md:w-auto text-center`}>
+          <ul className="flex flex-col p-4 md:p-0 mt-4 font-medium border rounded-lg md:space-x-8 md:flex-row md:mt-0 md:border-0 bg-barber-primary border-barber-secondary">
             <li>
-            <button className="block py-2 px-3 text-barber-light hover:text-barber-accent md:p-0" onClick={() => scrollToSection('Inicio')}>Inicio</button>
+            <button className="block py-2 px-3 text-barber-light hover:text-barber-accent md:p-0 " onClick={() => scrollToSection('Inicio')}>Inicio</button>
             </li>
             <li>
             <button className="block py-2 px-3 text-barber-light hover:text-barber-accent md:p-0" onClick={() => scrollToSection('servicios')}>Servicios</button>
@@ -53,12 +52,11 @@ const Navbar = () => {
             </li>
             {/* Botón de Reserva */}
             <li>
-              <a 
-                href="#" 
-                className="inline-block px-4 py-2 text-barber-light bg-barber-accent hover:bg-red-700 rounded-lg transition-colors duration-300"
-              >
-                Reservar Cita
-              </a>
+              <button className="inline-block px-4 py-2 text-barber-light bg-barber-accent hover:bg-red-700 rounded-lg transition-colors duration-300">
+                <Link to="/reserva">
+                Reserva tu cita
+                </Link>
+              </button>
             </li>
           </ul>
         </div>
