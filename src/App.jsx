@@ -1,35 +1,37 @@
 // import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Navbar from "./components/navbar/Navbar";
-import Footer from "./components/footer/Footer";
 import "./App.css";
 import Hero from "./components/hero/Hero";
 import Services from "./components/services/Services";
 import Gallery from "./components/gallery/Gallery";
 import Contact from "./components/contact/Contact";
 import Reserva from "./components/reserva/Reserva";
+import Login from "./components/auth/Login";
+import Layout from "./components/layout/Layout";
+import Dashboard from "./components/dashboard/Dashboard"
 
 function App() {
   return (
     <BrowserRouter>
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-grow pt-16">
-          <Routes>
-            <Route path="/" element={
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        
+        <Route path="/" element={<Layout />}>
+          <Route
+            index
+            element={
               <>
                 <Hero />
                 <Services />
-                <Gallery/>
-                <Contact/>
-                {/*los demas componentes*/}
+                <Gallery />
+                <Contact />
               </>
-            } />
-            <Route path="/reserva" element={<Reserva />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
+            }
+          />
+          <Route path="/reserva" element={<Reserva />} />
+        </Route>
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Routes>
     </BrowserRouter>
   );
 }
