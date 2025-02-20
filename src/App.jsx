@@ -15,7 +15,6 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
-        
         <Route path="/" element={<Layout />}>
           <Route
             index
