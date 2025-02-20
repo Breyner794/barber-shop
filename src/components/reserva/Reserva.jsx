@@ -1,20 +1,15 @@
 // components/reserva/Reserva.jsx
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { services } from '../../data/servicesData';
+import { barberos } from '../../data/barberosData';
+import { sedes } from '../../data/sedesData';
+import { horasDisponibles } from '../../data/horariosData'
 
 const Reserva = () => {
-
-  const sedes = [
-    { id: 1, nombre: "Sede Norte" },
-    { id: 2, nombre: "Sede Sur" },
-  ];
-
-  const barberos = [
-    { id: 1, nombre: "Juan Pérez", sede: 1 },
-    { id: 2, nombre: "Carlos García", sede: 1 },
-    { id: 3, nombre: "Miguel López", sede: 2 },
-    { id: 4, nombre: "David Martínez", sede: 2 },
-  ];
+  const location = useLocation();
+  const preSelectedService = location.state?.selectedService;
+  const [selectedBarber, setSelectedBarber] = useState(null);
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -22,27 +17,9 @@ const Reserva = () => {
     email: "",
     fecha: "",
     hora: "",
-    servicio: "",
+    servicio: preSelectedService || "",
     barbero: "", // opcional
   });
-
-  // Estos datos vendrían de tu backend eventualmente
-  const servicios = [
-    { id: 1, nombre: "Corte Clásico", precio: "$15.000" },
-    { id: 2, nombre: "Barba Completa", precio: "$10.000" },
-    { id: 3, nombre: "Combo Premium", precio: "$20.000" },
-  ];
-
-  const horasDisponibles = [
-    "09:00",
-    "10:00",
-    "11:00",
-    "12:00",
-    "14:00",
-    "15:00",
-    "16:00",
-    "17:00",
-  ];
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -51,7 +28,7 @@ const Reserva = () => {
   };
 
   const barberosFiltrados = barberos.filter(
-    barbero => barbero.sede === parseInt(formData.sede)
+    (barbero) => barbero.sede === parseInt(formData.sede)
   );
 
   return (
@@ -103,24 +80,81 @@ const Reserva = () => {
           </div>
 
           {/* Selección de servicio */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Servicio</label>
-            <select
-              value={formData.servicio}
-              onChange={(e) =>
-                setFormData({ ...formData, servicio: e.target.value })
-              }
-              className="w-full p-2 border rounded"
-              required
-            >
-              <option value="">Selecciona un servicio</option>
-              {servicios.map((servicio) => (
-                <option key={servicio.id} value={servicio.id}>
-                  {servicio.nombre} - {servicio.precio}
-                </option>
-              ))}
-            </select>
+         {/* Selector de Servicios */}
+<div className="mb-6">
+  <label className="block text-sm font-medium text-gray-700 mb-3">
+    Selecciona tu servicio
+  </label>
+  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    {services.map((service) => (
+      <div
+        key={service.id}
+        className={`
+          bg-white 
+          rounded-xl 
+          shadow-md 
+          overflow-hidden 
+          cursor-pointer 
+          transition-all 
+          duration-200
+          hover:shadow-lg
+          ${formData.servicio === service.id 
+            ? 'ring-2 ring-blue-500 bg-blue-50' 
+            : 'hover:bg-gray-50'
+          }
+        `}
+        onClick={() => setFormData({ ...formData, servicio: service.id })}
+      >
+        <div className="p-4 flex flex-col items-center">
+          {/* Ícono del servicio */}
+          <div className="text-4xl mb-4 text-center">{service.icon}</div>
+          
+          <div className="text-center w-full">
+            <h3 className="text-xl font-bold mb-2">{service.title}</h3>
+            <p className="text-2xl font-bold text-barber-accent mb-2">
+              {service.price}
+            </p>
+            <p className="text-gray-600 mb-4">{service.duration}</p>
           </div>
+
+          {/* Lista de servicios incluidos */}
+          <ul className="space-y-2 w-full flex flex-col items-center">
+            {service.includes.map((item, index) => (
+              <li key={index} className="flex items-center justify-center text-sm text-gray-600 w-full">
+                <span className="text-barber-accent mr-2">•</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  {/* Resumen del servicio seleccionado */}
+  {formData.servicio && (
+    <div className="mt-4 bg-gray-50 rounded-lg p-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="text-3xl">
+            {services.find(s => s.id === formData.servicio)?.icon}
+          </div>
+          <div>
+            <p className="font-medium">
+              {services.find(s => s.id === formData.servicio)?.title}
+            </p>
+            <p className="text-sm text-gray-500">
+              {services.find(s => s.id === formData.servicio)?.duration}
+            </p>
+          </div>
+        </div>
+        <p className="text-xl font-bold text-barber-accent">
+          {services.find(s => s.id === formData.servicio)?.price}
+        </p>
+      </div>
+    </div>
+  )}
+</div>
 
           {/* Fecha y hora */}
           <div>
@@ -158,11 +192,13 @@ const Reserva = () => {
             <label className="block text-sm font-medium mb-1">Sede</label>
             <select
               value={formData.sede}
-              onChange={(e) => setFormData({
-                ...formData, 
-                sede: e.target.value,
-                barbero: '' // Resetear barbero al cambiar de sede
-              })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  sede: e.target.value,
+                  barbero: "", // Resetear barbero al cambiar de sede
+                })
+              }
               className="w-full p-2 border rounded"
               required
             >
@@ -175,26 +211,86 @@ const Reserva = () => {
             </select>
           </div>
 
-          {/* Selección de barbero */}
           {formData.sede && (
-            <div>
-              <label className="block text-sm font-medium mb-1">Barbero</label>
-              <select
-                value={formData.barbero}
-                onChange={(e) => setFormData({...formData, barbero: e.target.value})}
-                className="w-full p-2 border rounded"
-                required
-              >
-                <option value="">Selecciona un barbero</option>
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Selecciona tu barbero
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {barberosFiltrados.map((barbero) => (
-                  <option key={barbero.id} value={barbero.id}>
-                    {barbero.nombre}
-                  </option>
+                  <div
+                    key={barbero.id}
+                    className={`
+            bg-white 
+            rounded-xl 
+            shadow-md 
+            overflow-hidden 
+            cursor-pointer 
+            transition-all 
+            duration-200
+            transform
+            hover:scale-105
+            hover:shadow-lg
+            ${
+              selectedBarber?.id === barbero.id
+                ? "ring-2 ring-blue-500 bg-blue-50"
+                : ""
+            }
+          `}
+                    onClick={() => {
+                      setSelectedBarber(barbero);
+                      setFormData({ ...formData, barbero: barbero.id });
+                    }}
+                  >
+                    <div className="p-4">
+                      <div className="flex flex-col items-center">
+                        <img
+                          src={barbero.imageUrl}
+                          alt={`Foto barbero ${barbero.nombre}`}
+                          className="w-16 h-16 rounded-full mb-2 object-cover border-2 border-gray-200"
+                        />
+                        <h3 className="text-sm font-semibold text-center text-gray-800">
+                          {barbero.nombre}
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Sede {barbero.sede === 1 ? "Compartir" : "Valle Grande"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 ))}
-              </select>
+              </div>
+
+              {/* Resumen de selección */}
+              {selectedBarber && (
+                <div className="mt-4 bg-white rounded-lg shadow-sm border border-gray-100">
+                  <div className="p-4">
+                    <p className="text-sm font-medium text-gray-700 mb-2">
+                      Barbero seleccionado:
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <img
+                          src={selectedBarber.imageUrl}
+                          alt={`Foto de ${selectedBarber.nombre}`}
+                          className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                        />
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">
+                          {selectedBarber.nombre}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Sede {selectedBarber.sede === 1 ? "Compartir" : "Valle Grande"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
-
           {/* Botón de envío */}
           <button
             type="submit"
