@@ -1,32 +1,9 @@
-
+import { services } from '../../data/servicesData';
+import { useNavigate } from 'react-router-dom';
 
 const Services = () => {
-    const services = [
-        /*Servicios: podemos adicionar nuevos o cambiarlos
-        la idea es que aqui podamos cambiar con mas facilidad los precios
-        o diferentes combos que pueden haber en futuro.*/
-      {
-        title: "Corte Clásico",
-        price: "$15.000",
-        duration: "30 min",
-        includes: ["Corte de cabello", "Lavado", "Peinado"],
-        icon: "✂️"
-      },
-      {
-        title: "Barba Completa",
-        price: "$10.000",
-        duration: "20 min",
-        includes: ["Perfilado", "Afeitado", "Tratamiento"],
-        icon: "💈"
-      },
-      {
-        title: "Combo Premium",
-        price: "$20.000",
-        duration: "45 min",
-        includes: ["Corte", "Barba", "Mascarilla"],
-        icon: "👑"
-      },
-    ];
+    
+  const navigate = useNavigate();
   
     return (
     <section id="servicios">
@@ -52,7 +29,8 @@ const Services = () => {
                   </ul>
                 </div>
                 <div className="p-4 bg-gray-50">
-                  <button className="w-full bg-barber-accent hover:bg-red-700 text-white py-2 rounded-lg transition-colors">
+                  <button className="w-full bg-barber-accent hover:bg-red-700 text-white py-2 rounded-lg transition-colors"
+                  onClick={() => navigate('/reserva', { state: { selectedService: service.id } })}>
                     Reservar
                   </button>
                 </div>
