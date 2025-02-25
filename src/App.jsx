@@ -9,6 +9,7 @@ import Reserva from "./components/reserva/Reserva";
 import Login from "./components/auth/Login";
 import Layout from "./components/layout/Layout";
 import Dashboard from "./components/dashboard/Dashboard"
+import Reservas from "./components/dashboard/reservas"
 
 function App() {
   return (
@@ -29,7 +30,10 @@ function App() {
           />
           <Route path="/reserva" element={<Reserva />} />
         </Route>
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />}>
+          <Route path="reservas" element={<Reservas />} />
+        </Route>
+        
       </Routes>
     </BrowserRouter>
   );
