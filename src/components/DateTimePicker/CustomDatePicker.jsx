@@ -103,7 +103,7 @@ const CustomDatePicker = ({ formData, setFormData }) => {
               }
               minTime={new Date(0, 0, 0, 9)} // Hora mínima: 9:00
               maxTime={new Date(0, 0, 0, 19)} // Hora máxima: 19:00
-              minutesStep={30} // Intervalos de 30 minutos
+              minutesStep={40} // Intervalos de 40 minutos
             />
           </Paper>
         </Box>
