@@ -10,7 +10,7 @@ import {
 } from 'react-icons/fa';
 
 const Sidebar = () => {
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const menuItems = [
     { name: 'Dashboard', icon: <FaHome size={20} />, path: '/dashboard', enabled: true },
@@ -53,7 +53,7 @@ const Sidebar = () => {
         fixed left-0 top-0 h-full bg-barber-primary text-white
         transition-all duration-300 ease-in-out z-40
         ${isCollapsed ? 'w-16' : 'w-64'}
-        md:translate-x-0
+        lg:translate-x-0
         ${isCollapsed ? '-translate-x-full md:translate-x-0' : ''}
       `}>
         {/* Logo */}
@@ -95,7 +95,7 @@ const Sidebar = () => {
       {/* Overlay para móvil */}
       {!isCollapsed && (
         <div
-          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
           onClick={() => setIsCollapsed(true)}
         />
       )}
