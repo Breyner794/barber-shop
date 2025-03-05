@@ -11,6 +11,7 @@ import Layout from "./components/layout/Layout";
 import Dashboard from "./components/dashboard/Dashboard"
 // import Reservas from "./components/dashboard/reservas"
 import GestionReservas from "./components/dashboard/GestionReservas";
+import ServicesAdminPanel from "./components/dashboard/Servicios_Admin";
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />}>
           {/* <Route path="reservas" element={<Reservas />} /> */}
           <Route path="gestionreservas" element={<GestionReservas/>}/>
+          <Route path="servicesadminpanel" element={<ServicesAdminPanel/>}/>
         </Route>
       </Routes>
     </BrowserRouter>

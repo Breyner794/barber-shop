@@ -28,7 +28,7 @@ const SidebarDashboard = ({ isOpen, onClose }) => {
     {
       name: "Servicios",
       icon: <Briefcase size={20} />,
-      path: "/dashboard/servicios",
+      path: "/dashboard/servicesadminpanel",
       enabled: true,
     },
     {
