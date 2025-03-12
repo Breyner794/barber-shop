@@ -7,6 +7,8 @@ import {
   Briefcase,
   BarChart2,
   Settings,
+  UserPen,
+  HousePlus
 } from "lucide-react";
 
 const SidebarDashboard = ({ isOpen, onClose }) => {
@@ -29,6 +31,18 @@ const SidebarDashboard = ({ isOpen, onClose }) => {
       name: "Servicios",
       icon: <Briefcase size={20} />,
       path: "/dashboard/servicesadminpanel",
+      enabled: true,
+    },
+    {
+      name: "Usuarios",
+      icon: <UserPen size={20} />,
+      path: "/dashboard/adminuser",
+      enabled: true,
+    },
+    {
+      name: "Sedes - Locales",
+      icon: <HousePlus size={20} />,
+      path: "/dashboard/gestionsedes",
       enabled: true,
     },
     {
