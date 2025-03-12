@@ -12,6 +12,9 @@ import Dashboard from "./components/dashboard/Dashboard"
 // import Reservas from "./components/dashboard/reservas"
 import GestionReservas from "./components/dashboard/GestionReservas";
 import ServicesAdminPanel from "./components/dashboard/Servicios_Admin";
+import AdminUser from "./components/dashboard/AdminUser";
+import GestionSedes from "./components/dashboard/GestionSedes";
+import BarberoForm from "./components/dashboard/BarberoForm";
 
 function App() {
   return (
@@ -36,6 +39,13 @@ function App() {
           {/* <Route path="reservas" element={<Reservas />} /> */}
           <Route path="gestionreservas" element={<GestionReservas/>}/>
           <Route path="servicesadminpanel" element={<ServicesAdminPanel/>}/>
+          <Route path="adminuser" element={<AdminUser/>}/>
+          {/*************************Rutas de pruebas.******************/}
+          {/*posiblemente se van a cambiar no van a ser rutas propias.*/}
+          <Route path="adminuser/nuevo" element={<BarberoForm/>}/> 
+          <Route path="adminuser/editar:id" element={<BarberoForm/>}/>
+          {/************************************************************/}
+          <Route path="gestionsedes" element={<GestionSedes/>}/>
         </Route>
       </Routes>
     </BrowserRouter>
