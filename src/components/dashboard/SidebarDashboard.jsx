@@ -36,13 +36,13 @@ const SidebarDashboard = ({ isOpen, onClose }) => {
     {
       name: "Usuarios",
       icon: <UserPen size={20} />,
-      path: "/dashboard/adminuser",
+      path: "/dashboard/barberosadminpanel",
       enabled: true,
     },
     {
       name: "Sedes - Locales",
       icon: <HousePlus size={20} />,
-      path: "/dashboard/gestionsedes",
+      path: "/dashboard/sedesadminPanel",
       enabled: true,
     },
     {
