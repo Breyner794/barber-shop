@@ -34,7 +34,7 @@ const SidebarDashboard = ({ isOpen, onClose }) => {
       enabled: true,
     },
     {
-      name: "Usuarios",
+      name: "Barberos",
       icon: <UserPen size={20} />,
       path: "/dashboard/barberosadminpanel",
       enabled: true,
