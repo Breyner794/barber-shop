@@ -47,7 +47,7 @@ const Hero = () => {
 
       {/* Contenido */}
       <div className="relative h-full flex flex-col justify-center items-center text-white text-center px-4">
-        <h1 className="text-4xl md:text-6xl font-bold mb-4">
+        <h1 className="text-4xl md:text-6xl font-garamond mb-4">
           Caballeros del señor💈
         </h1>
         <p className="text-xl md:text-2xl mb-8">

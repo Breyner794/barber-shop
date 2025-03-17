@@ -41,7 +41,7 @@ const Navbar = () => {
         {/* Logo y Nombre */}
         <a href="/" className="flex items-center space-x-3">
           <img src="/src/assets/scissors.svg" className="h-12" alt="Logo Barbería" />
-          <span className="self-center text-2xl font-semibold whitespace-nowrap text-barber-light">
+          <span className="self-center text-3xl font-garamond whitespace-nowrap text-barber-light">
             Caballeros del señor💈
           </span>
         </a>
