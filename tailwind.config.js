@@ -1,5 +1,6 @@
 // Puedes agregar esto en tu tailwind.config.js
-/** @type {import('tailwindcss').Config} */
+/** @type {import('tailwindcss').Config @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');} */
+
 export default {
   content: [
     "./index.html",
@@ -7,6 +8,9 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily:{
+        garamond:['EB Garamond']
+      },
       colors: {
         barber: {
           primary: '#0B2447',    // Azul oscuro predominante
