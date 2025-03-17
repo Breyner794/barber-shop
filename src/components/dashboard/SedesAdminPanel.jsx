@@ -63,7 +63,7 @@ const SedesAdminPanel = () => {
   };
 
   return (
-    <div className="container mx-auto">
+    <div className="flex-1 overflow-auto">
       <header className="sticky top-0 z-30 flex items-center justify-between h-16 pr-4 pl-20 bg-white shadow-md">
         <h1 className="text-xl font-bold ">Administración de Sedes</h1>
         <div className="flex justify-between items-center">
