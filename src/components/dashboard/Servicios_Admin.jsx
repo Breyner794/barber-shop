@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Trash2, 
   Edit, 
@@ -7,29 +7,53 @@ import {
   Save, 
   PlusCircle 
 } from 'lucide-react';
-import { services as initialServices} from '../../data/servicesData';
+import { getAllServices, getByIdServices, createServices, updateServices, deleteService} from '../../services/serviceClient.js';
 
 const ServicesAdminPanel = () => {
-
-  const [services, setServices] = useState(initialServices);
-
+  const [services, setServices] = useState([]);
   const [editingService, setEditingService] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const fetchServices = async () => {
+    try {
+      setLoading(true);
+      const response = await getAllServices();
+      // console.log("API response:", response);
+      const serviceData = response.data ? response.data : response;
+      // console.log("Service data to be set:", serviceData);
+      setServices(serviceData);
+    } catch (error) {
+      console.error('Error Loading services:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchServices();
+  }, []);
 
   const handleEditService = (service) => {
     setEditingService({...service});
     setIsModalOpen(true);
   };
 
-  const handleDeleteService = (id) => {
-    setServices(services.filter(service => service.id !== id));
+  const handleDeleteService = async (id) => {
+    try {
+      await deleteService(id);
+      // Recargar los servicios después de eliminar
+      await fetchServices();
+    } catch (error) {
+      console.error('Error deleting service:', error);
+    }
   };
 
   const handleInputChange = (e, field) => {
     const { value } = e.target;
     setEditingService(prev => ({
       ...prev,
-      [field]: value
+      [field]: field === 'price' || field === 'duration' ? Number(value) : value
     }));
   };
 
@@ -57,93 +81,118 @@ const ServicesAdminPanel = () => {
     }));
   };
 
-  const saveChanges = () => {
-    setServices(prev => 
-      prev.map(service => 
-        service.id === editingService.id ? editingService : service
-      )
-    );
-    setIsModalOpen(false);
-    console.log(setServices);
+  const saveChanges = async () => {
+    try {
+      if (editingService._id) {
+        // Actualizar servicio existente
+        await updateServices(editingService._id, editingService);
+      } else {
+        // Crear nuevo servicio
+        await createServices(editingService);
+      }
+      
+      // Recargar la lista completa después de guardar
+      await fetchServices();
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Error saving service:', error);
+    }
   };
 
   const addNewService = () => {
+    // Encontrar el ID numérico más alto
+    const highestId = services.length > 0 
+      ? Math.max(...services.map(service => Number(service.id || 0)))
+      : 0;
+    
     const newService = {
-      id: services.length + 1,
+      id: highestId + 1,
       title: "Nuevo Servicio",
-      price: "$0.000",
-      duration: "0 min",
+      price: 0,
+      duration: 0,
       includes: [""],
       icon: "❓"
     };
+    
     setEditingService(newService);
     setIsModalOpen(true);
-    
   };
 
+  if (loading) {
+    return <div className="flex justify-center items-center h-full">Cargando servicios...</div>;
+  }
+
   return (
-    
     <div className="flex-1 overflow-auto">
-        <header className="sticky top-0 z-30 flex items-center justify-between h-16 pr-4 pl-20 bg-white shadow-md">
+      <header className="sticky top-0 z-30 flex items-center justify-between h-16 pr-4 pl-20 bg-white shadow-md">
         <h1 className="text-xl font-bold">Administración de Servicios</h1>
-      <div className="flex justify-between items-center">
-        <button 
-          onClick={addNewService} 
-          className="flex items-center text-sm font-medium bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
-        >
-          <Plus className="mr-2" /> Agregar Servicio
-        </button>
-      </div>
+        <div className="flex justify-between items-center">
+          <button 
+            onClick={addNewService} 
+            className="flex items-center text-sm font-medium bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
+          >
+            <Plus className="mr-2" /> Agregar Servicio
+          </button>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 m-3">
-        {services.map((service) => (
-          <div 
-            key={service.id} 
-            className="border rounded-lg p-4 shadow-md"
-          >
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">{service.title}</h2>
-              <div className="flex space-x-2">
-                <button 
-                  onClick={() => handleEditService(service)}
-                  className="text-blue-500 hover:text-blue-700 transition"
-                >
-                  <Edit />
-                </button>
-                <button 
-                  onClick={() => handleDeleteService(service.id)}
-                  className="text-red-500 hover:text-red-700 transition"
-                >
-                  <Trash2 />
-                </button>
+        {Array.isArray(services) && services.length > 0 ? (
+          services.map((service) => (
+            <div 
+              key={service._id} 
+              className="border rounded-lg p-4 shadow-md"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">{service.title}</h2>
+                <div className="flex space-x-2">
+                  <button 
+                    onClick={() => handleEditService(service)}
+                    className="text-blue-500 hover:text-blue-700 transition"
+                  >
+                    <Edit />
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteService(service._id)}
+                    className="text-red-500 hover:text-red-700 transition"
+                  >
+                    <Trash2 />
+                  </button>
+                </div>
+              </div>
+              <div className='grid grid-cols-2'>
+                <div>
+                  <p>Id: {service.id}</p>
+                  <p>Precio: ${service.price.toLocaleString('es-CO')} - {service.price > 0 ? 'Disponible' : 'No disponible'}</p>
+                  <p>Duración: {service.duration} min</p>
+                  <p>Ícono: {service.icon}</p>
+                </div>
+                <div>
+                  <p>Servicios:</p>
+                  <ul>
+                    {service.includes && service.includes.map((item, i) => (
+                      <li key={i} className='flex'>
+                        <span className='text-barber-accent mr-2'>•</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </div>
-            <div className='grid grid-cols-2'>
-            <div>
-            <p>Precio: {service.price}</p>
-            <p>Duración: {service.duration}</p>
-            <p>Ícono: {service.icon}</p>
-            </div>
-            <p>Servicios: {service.includes.map((item,i)=>(
-                <li key={i} className='flex'>
-                    <span className='text-barber-accent mr-2'>•</span>
-                    {item}
-                </li>
-            )
-            )
-                }
-            </p>
-            </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <p>No hay servicios disponibles</p>
+        )}
       </div>
 
       {isModalOpen && editingService && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold">Editar Servicio</h2>
+              <h2 className="text-2xl font-bold">
+                {editingService._id ? 'Editar Servicio' : 'Crear Servicio'}
+              </h2>
               <button 
                 onClick={() => setIsModalOpen(false)}
                 className="text-red-500 hover:text-red-700"
@@ -166,6 +215,7 @@ const ServicesAdminPanel = () => {
               <div>
                 <label className="block mb-2">Precio</label>
                 <input 
+                  type="number"
                   className="w-full border rounded p-2"
                   value={editingService.price}
                   onChange={(e) => handleInputChange(e, 'price')}
@@ -176,6 +226,7 @@ const ServicesAdminPanel = () => {
               <div>
                 <label className="block mb-2">Duración</label>
                 <input 
+                  type="number"
                   className="w-full border rounded p-2"
                   value={editingService.duration}
                   onChange={(e) => handleInputChange(e, 'duration')}
@@ -195,7 +246,7 @@ const ServicesAdminPanel = () => {
               
               <div>
                 <label className="block mb-2">Incluye</label>
-                {editingService.includes.map((include, index) => (
+                {editingService.includes && editingService.includes.map((include, index) => (
                   <div key={index} className="flex items-center space-x-2 mb-2">
                     <input 
                       className="flex-grow border rounded p-2"
