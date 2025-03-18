@@ -16,6 +16,7 @@
     "@mui/x-date-pickers": "^6.18.1",
     "@tailwindcss/cli": "^4.0.4",
     "@tailwindcss/vite": "^4.0.4",
+    "axios": "^1.8.3",
     "date-fns": "^2.30.0",
     "lucide-react": "^0.476.0",
     "react": "^18.2.0",
