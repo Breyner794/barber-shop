@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Trash2, 
   Edit, 
@@ -7,60 +7,88 @@ import {
   Save, 
   MapPin 
 } from 'lucide-react';
-import { sedes as initialSedes } from '../../data/sedesData';
+import { getAllSite, createSite, updateSite, deleteSite } from '../../services/sedesClient';
 
 const SedesAdminPanel = () => {
-  const [sedes, setSedes] = useState(initialSedes);
-  const [editingSede, setEditingSede] = useState(null);
+  const [sedes, setSedes] = useState([]);
+  const [editingSede, setEditingSede] = useState({
+    name_site: "",
+    address_site: "",
+    phone_site: "",
+    headquarter_time: "", // Inicializa con la fecha actual
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const fetchSite = async () =>{
+    try{
+      setLoading(true);
+      const response = await getAllSite();
+      const siteData = response.data ? response.data : response;
+      setSedes(siteData);
+    }catch(error){
+      console.error('Error Loading sites:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(()=>{
+    fetchSite();
+  },[]);
 
   const handleEditSede = (sede) => {
     setEditingSede({...sede});
     setIsModalOpen(true);
   };
 
-  const handleDeleteSede = (id) => {
-    setSedes(sedes.filter(sede => sede.id !== id));
+  const handleDeleteSede = async(id) => {
+    try{
+      await deleteSite(id);
+
+      await fetchSite();
+    }catch (error){
+      console.error('Error deleting site',error);
+    }
   };
 
   const handleInputChange = (e, field) => {
     const { value } = e.target;
-    setEditingSede(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  setEditingSede(prev => ({
+    ...prev,
+    [field]: value
+  }));
   };
 
-  const saveChanges = () => {
-    if (editingSede.id) {
-      // Actualizar sede existente
-      setSedes(prev => 
-        prev.map(sede => 
-          sede.id === editingSede.id ? editingSede : sede
-        )
-      );
-    } else {
-      // Agregar nueva sede
-      const newSede = {
-        ...editingSede,
-        id: Math.max(...sedes.map(s => s.id), 0) + 1
-      };
-      setSedes(prev => [...prev, newSede]);
+  const saveChanges = async() => {
+    try{
+      if (editingSede._id){
+        await updateSite(editingSede._id, editingSede);
+      } else {
+        await createSite(editingSede);
+      }
+      await fetchSite();
+      setIsModalOpen(false);
+    }catch(error){
+      console.error('Error saving site:', error)
     }
-    setIsModalOpen(false);
   };
 
   const addNewSede = () => {
-    const newSede = {
-      id: null,
-      nombre: "",
-      direccion: "",
-      telefono: "",
-      horario_sede: ""
+
+    const newSede = {   
+      name_site: "",
+      address_site: "",
+      phone_site: "",
+      headquarter_time: "",
     };
     setEditingSede(newSede);
     setIsModalOpen(true);
   };
+
+  if (loading) {
+    return <div className="flex justify-center items-center h-full">Cargando servicios...</div>;
+  }
 
   return (
     <div className="flex-1 overflow-auto">
@@ -79,11 +107,11 @@ const SedesAdminPanel = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 m-3">
         {sedes.map((sede) => (
           <div 
-            key={sede.id} 
+            key={sede._id} 
             className="border rounded-lg p-4 shadow-md"
           >
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">{sede.nombre}</h2>
+              <h2 className="text-xl font-semibold">{sede.name_site}</h2>
               <div className="flex space-x-2">
                 <button 
                   onClick={() => handleEditSede(sede)}
@@ -92,7 +120,7 @@ const SedesAdminPanel = () => {
                   <Edit />
                 </button>
                 <button 
-                  onClick={() => handleDeleteSede(sede.id)}
+                  onClick={() => handleDeleteSede(sede._id)}
                   className="text-red-500 hover:text-red-700 transition"
                 >
                   <Trash2 />
@@ -102,18 +130,18 @@ const SedesAdminPanel = () => {
             <div className="grid grid-cols-1 gap-2">
               <div className="flex items-start">
                 <MapPin className="mr-2 text-gray-600 mt-1" size={16} />
-                <p>{sede.direccion}</p>
+                <p>{sede.address_site}</p>
               </div>
               <div className="flex items-center">
                 <span className="mr-2 text-gray-600">📞</span>
-                <p>{sede.telefono}</p>
+                <p>{sede.phone_site}</p>
               </div>
               <div className="flex items-center">
                 <span className="mr-2 text-gray-600">🕒</span>
-                <p>{sede.horario_sede}</p>
+                <p>{sede.headquarter_time}</p>
               </div>
               <div className="mt-2 text-sm text-gray-500">
-                <p>ID: {sede.id}</p>
+                <p>ID: {sede._id}</p>
               </div>
             </div>
           </div>
@@ -140,8 +168,8 @@ const SedesAdminPanel = () => {
                 <label className="block mb-2">Nombre de la Sede</label>
                 <input 
                   className="w-full border rounded p-2"
-                  value={editingSede.nombre}
-                  onChange={(e) => handleInputChange(e, 'nombre')}
+                  value={editingSede.name_site}
+                  onChange={(e) => handleInputChange(e, 'name_site')}
                   placeholder="Ej: Sede - Compartir"
                 />
               </div>
@@ -150,8 +178,8 @@ const SedesAdminPanel = () => {
                 <label className="block mb-2">Dirección</label>
                 <input 
                   className="w-full border rounded p-2"
-                  value={editingSede.direccion}
-                  onChange={(e) => handleInputChange(e, 'direccion')}
+                  value={editingSede.address_site}
+                  onChange={(e) => handleInputChange(e, 'address_site')}
                   placeholder="Ej: Calle 123 #45-67"
                 />
               </div>
@@ -160,9 +188,9 @@ const SedesAdminPanel = () => {
                 <label className="block mb-2">Teléfono</label>
                 <input 
                   className="w-full border rounded p-2"
-                  type="tel"
-                  value={editingSede.telefono}
-                  onChange={(e) => handleInputChange(e, 'telefono')}
+                  type="number"
+                  value={editingSede.phone_site}
+                  onChange={(e) => handleInputChange(e, 'phone_site')}
                   placeholder="Ej: 3001234567"
                 />
               </div>
@@ -171,8 +199,8 @@ const SedesAdminPanel = () => {
                 <label className="block mb-2">Horario</label>
                 <input 
                   className="w-full border rounded p-2"
-                  value={editingSede.horario_sede}
-                  onChange={(e) => handleInputChange(e, 'horario_sede')}
+                  value={editingSede.headquarter_time}
+                  onChange={(e) => handleInputChange(e, 'headquarter_time')}
                   placeholder="Ej: 9 am a 10 pm"
                 />
               </div>
