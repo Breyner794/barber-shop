@@ -14,10 +14,11 @@ import GestionReservas from "./components/dashboard/GestionReservas";
 import ServicesAdminPanel from "./components/dashboard/Servicios_Admin";
 import BarberosAdminPanel from "./components/dashboard/BarberosAdminPanel";
 import SedesAdminPanel from "./components/dashboard/SedesAdminPanel";
-
+import { ServicesProvider } from './context/ServicesContext';
 
 function App() {
   return (
+    <ServicesProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -44,6 +45,7 @@ function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    </ServicesProvider>
   );
 }
 
