@@ -15,10 +15,12 @@ import ServicesAdminPanel from "./components/dashboard/Servicios_Admin";
 import BarberosAdminPanel from "./components/dashboard/BarberosAdminPanel";
 import SedesAdminPanel from "./components/dashboard/SedesAdminPanel";
 import { ServicesProvider } from './context/ServicesContext';
+import BarbersProvider from "./context/BarberContext";
 
 function App() {
   return (
     <ServicesProvider>
+      <BarbersProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -45,6 +47,7 @@ function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    </BarbersProvider>
     </ServicesProvider>
   );
 }
