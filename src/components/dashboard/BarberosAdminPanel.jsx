@@ -1,10 +1,18 @@
 import React, { useState } from "react";
 import { Trash2, Edit, Plus, X, Save, User } from "lucide-react";
-import { barberos as initialBarberos } from "../../data/barberosData";
-import { sedes } from "../../data/sedesData";
+import { useBarbers } from "../../context/BarberContext";
 
 const BarberosAdminPanel = () => {
-  const [barberos, setBarberos] = useState(initialBarberos);
+  const { 
+    barbers, 
+    loading, 
+    error, 
+    addBarber, 
+    editBarber, 
+    removeBarber, 
+    getSiteById
+  } = useBarbers();
+  
   const [editingBarbero, setEditingBarbero] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -13,8 +21,14 @@ const BarberosAdminPanel = () => {
     setIsModalOpen(true);
   };
 
-  const handleDeleteBarbero = (id) => {
-    setBarberos(barberos.filter((barbero) => barbero.id !== id));
+  const handleDeleteBarbero = async (barbero) => {
+    if (window.confirm(`¿Estás seguro de eliminar a ${barbero.nombre} ${barbero.apellido}?`)) {
+      try {
+        await removeBarber(barbero.id, barbero._id);
+      } catch (error) {
+        alert("Error al eliminar el barbero");
+      }
+    }
   };
 
   const handleInputChange = (e, field) => {
@@ -26,31 +40,26 @@ const BarberosAdminPanel = () => {
   };
 
   const handleSedeChange = (e) => {
-    const value = parseInt(e.target.value);
+    const value = e.target.value;
     setEditingBarbero((prev) => ({
       ...prev,
       sede: value,
     }));
   };
 
-  const saveChanges = () => {
-    if (editingBarbero.id) {
-      // Actualizar barbero existente
-      setBarberos((prev) =>
-        prev.map((barbero) =>
-          barbero.id === editingBarbero.id ? editingBarbero : barbero
-        )
-      );
+  const saveChanges = async () => {
+    try {
+      if (editingBarbero._id) {
+        // Actualizar barbero existente
+        await editBarber(editingBarbero);
+      } else {
+        // Agregar nuevo barbero
+        await addBarber(editingBarbero);
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      alert("Error al guardar los cambios");
     }
-    // } else {
-    //   // Agregar nuevo barbero
-    //   const newBarbero = {
-    //     ...editingBarbero,
-    //     id: Math.max(...barberos.map((b) => b.id), 0) + 1,
-    //   };
-    //   setBarberos((prev) => [...prev, newBarbero]);
-    // }
-    setIsModalOpen(false);
   };
 
   const addNewBarbero = () => {
@@ -58,17 +67,24 @@ const BarberosAdminPanel = () => {
       id: "",
       nombre: "",
       apellido: "",
-      sede: 1,
+      sede: "", // Dejarlo vacío para que el usuario seleccione
       imageUrl: "/src/assets/image/usuario.png",
     };
     setEditingBarbero(newBarbero);
     setIsModalOpen(true);
   };
 
-  const getSedeNombre = (sedeId) => {
-    const sede = sedes.find((s) => s.id === sedeId);
-    return sede ? sede.nombre : "Desconocida";
-  };
+  if (loading && barbers.length === 0) {
+    return <div className="flex-1 flex items-center justify-center">Cargando barberos...</div>;
+  }
+
+  if (error && barbers.length === 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-red-500">
+        Error: {error}
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-auto">
@@ -85,48 +101,54 @@ const BarberosAdminPanel = () => {
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 m-3">
-        {barberos.map((barbero) => (
-          <div key={barbero.id} className="border rounded-lg p-4 shadow-md">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">
-                {barbero.nombre} {barbero.apellido}
-              </h2>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => handleEditBarbero(barbero)}
-                  className="text-blue-500 hover:text-blue-700 transition"
-                >
-                  <Edit />
-                </button>
-                <button
-                  onClick={() => handleDeleteBarbero(barbero.id)}
-                  className="text-red-500 hover:text-red-700 transition"
-                >
-                  <Trash2 />
-                </button>
-              </div>
-            </div>
-            <div className="grid grid-cols-2">
-              <div className="flex flex-col">
-                <p>ID: {barbero.id}</p>
-                <p>Sede: {getSedeNombre(barbero.sede)}</p>
-              </div>
-              <div className="flex items-center justify-center">
-                {barbero.imageUrl ? (
-                  <img
-                    src={barbero.imageUrl}
-                    alt={`${barbero.nombre} ${barbero.apellido}`}
-                    className="w-16 h-16 object-cover rounded-full"
-                  />
-                ) : (
-                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
-                    <User size={24} />
-                  </div>
-                )}
-              </div>
-            </div>
+        {barbers.length === 0 ? (
+          <div className="col-span-3 text-center p-6 bg-gray-100 rounded-lg">
+            No hay barberos registrados.
           </div>
-        ))}
+        ) : (
+          barbers.map((barbero) => (
+            <div key={barbero.id} className="border rounded-lg p-4 shadow-md">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">
+                  {barbero.nombre} {barbero.apellido}
+                </h2>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handleEditBarbero(barbero)}
+                    className="text-blue-500 hover:text-blue-700 transition"
+                  >
+                    <Edit />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteBarbero(barbero)}
+                    className="text-red-500 hover:text-red-700 transition"
+                  >
+                    <Trash2 />
+                  </button>
+                </div>
+              </div>
+              <div className="grid grid-cols-2">
+                <div className="flex flex-col">
+                  <p>ID: {barbero.id}</p>
+                  <p>Sede: {getSiteById(barbero.sede)}</p>
+                </div>
+                <div className="flex items-center justify-center">
+                  {barbero.imageUrl ? (
+                    <img
+                      src={barbero.imageUrl}
+                      alt={`${barbero.nombre} ${barbero.apellido}`}
+                      className="w-16 h-16 object-cover rounded-full"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                      <User size={24} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {isModalOpen && editingBarbero && (
@@ -134,7 +156,7 @@ const BarberosAdminPanel = () => {
           <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-auto">
             <div className="flex justify-between items-center p-4">
               <h2 className="text-2xl font-bold">
-                {editingBarbero.id ? "Editar Barbero" : "Nuevo Barbero"}
+                {editingBarbero._id ? "Editar Barbero" : "Nuevo Barbero"}
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -182,7 +204,9 @@ const BarberosAdminPanel = () => {
                   value={editingBarbero.sede}
                   onChange={handleSedeChange}
                 >
-                  {sedes.map((sede) => (
+                  <option value="">Selecciona una sede</option>
+                  {/* Aquí usamos los sites del contexto */}
+                  {useBarbers().sites.map((sede) => (
                     <option key={sede.id} value={sede.id}>
                       {sede.nombre}
                     </option>
