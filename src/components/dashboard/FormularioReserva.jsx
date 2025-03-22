@@ -4,7 +4,7 @@ import { services } from "../../data/servicesData";
 import { barberos } from "../../data/barberosData";
 import { sedes } from "../../data/sedesData";
 import CustomDatePicker from "../DateTimePicker/CustomDatePicker";
-import ServicesForm from "../services/servicesForm";
+import ServicesForm from "../services/ServicesForm";
 import SedesForm from "../sedes/sedesForm";
 import BarberosForm from "../barberos/BarberosForm";
 
