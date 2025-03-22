@@ -16,10 +16,12 @@ import BarberosAdminPanel from "./components/dashboard/BarberosAdminPanel";
 import SedesAdminPanel from "./components/dashboard/SedesAdminPanel";
 import { ServicesProvider } from './context/ServicesContext';
 import BarbersProvider from "./context/BarberContext";
+import { SedeProvider } from './context/SedeContext';
 
 function App() {
   return (
     <ServicesProvider>
+      <SedeProvider>
       <BarbersProvider>
     <BrowserRouter>
       <Routes>
@@ -48,6 +50,7 @@ function App() {
       </Routes>
     </BrowserRouter>
     </BarbersProvider>
+    </SedeProvider>
     </ServicesProvider>
   );
 }
