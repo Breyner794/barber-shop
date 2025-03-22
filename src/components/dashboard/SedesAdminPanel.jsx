@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Trash2, 
   Edit, 
@@ -7,35 +7,17 @@ import {
   Save, 
   MapPin 
 } from 'lucide-react';
-import { getAllSite, createSite, updateSite, deleteSite } from '../../services/sedesClient';
+import { useSede } from '../../context/SedeContext.jsx'; // Importa el hook del contexto
 
 const SedesAdminPanel = () => {
-  const [sedes, setSedes] = useState([]);
+  const { sedes, loading, addSede, editSede, removeSede } = useSede(); // Usa el contexto
   const [editingSede, setEditingSede] = useState({
     name_site: "",
     address_site: "",
     phone_site: "",
-    headquarter_time: "", // Inicializa con la fecha actual
+    headquarter_time: "",
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  const fetchSite = async () =>{
-    try{
-      setLoading(true);
-      const response = await getAllSite();
-      const siteData = response.data ? response.data : response;
-      setSedes(siteData);
-    }catch(error){
-      console.error('Error Loading sites:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(()=>{
-    fetchSite();
-  },[]);
 
   const handleEditSede = (sede) => {
     setEditingSede({...sede});
@@ -43,39 +25,35 @@ const SedesAdminPanel = () => {
   };
 
   const handleDeleteSede = async(id) => {
-    try{
-      await deleteSite(id);
-
-      await fetchSite();
-    }catch (error){
-      console.error('Error deleting site',error);
+    try {
+      await removeSede(id);
+    } catch (error) {
+      console.error('Error eliminando sede', error);
     }
   };
 
   const handleInputChange = (e, field) => {
     const { value } = e.target;
-  setEditingSede(prev => ({
-    ...prev,
-    [field]: value
-  }));
+    setEditingSede(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const saveChanges = async() => {
-    try{
-      if (editingSede._id){
-        await updateSite(editingSede._id, editingSede);
+    try {
+      if (editingSede._id) {
+        await editSede(editingSede._id, editingSede);
       } else {
-        await createSite(editingSede);
+        await addSede(editingSede);
       }
-      await fetchSite();
       setIsModalOpen(false);
-    }catch(error){
-      console.error('Error saving site:', error)
+    } catch(error) {
+      console.error('Error guardando sede:', error)
     }
   };
 
   const addNewSede = () => {
-
     const newSede = {   
       name_site: "",
       address_site: "",
@@ -153,7 +131,7 @@ const SedesAdminPanel = () => {
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">
-                {editingSede.id ? "Editar Sede" : "Nueva Sede"}
+                {editingSede._id ? "Editar Sede" : "Nueva Sede"}
               </h2>
               <button 
                 onClick={() => setIsModalOpen(false)}
