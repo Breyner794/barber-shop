@@ -1,12 +1,21 @@
 import React from "react";
+import { useBarbers } from "../../context/BarberContext";
 
-const BarberosForm = ({ formData, setFormData, barberos, selectedBarber, setSelectedBarber }) => {
-  // Filtramos los barberos por sede
-  const barberosFiltrados = barberos.filter(
-    (barbero) => barbero.sede === parseInt(formData.sede)
-  );
+const BarberosForm = ({ formData, setFormData, selectedBarber, setSelectedBarber, getSiteById }) => {
+  const { barbers, loading, error } = useBarbers();
 
   if (!formData.sede) return null;
+  if (loading) return <p>Cargando barberos...</p>;
+  if (error) return <p>Error al cargar barberos: {error}</p>;
+
+  // console.log('Barberos:', barbers); // Verifica los datos de barberos
+  // console.log('Sede seleccionada:', formData.sede); // Verifica la sede seleccionada
+
+  const barberosFiltrados = barbers.filter(
+    (barbero) => barbero.sede === formData.sede
+  );
+
+  // console.log('Barberos filtrados:', barberosFiltrados); // Verifica los barberos filtrados
 
   return (
     <div className="mb-6">
@@ -17,19 +26,7 @@ const BarberosForm = ({ formData, setFormData, barberos, selectedBarber, setSele
         {barberosFiltrados.map((barbero) => (
           <div
             key={barbero.id}
-            className={`
-              bg-white 
-              rounded-xl 
-              shadow-md 
-              overflow-hidden 
-              cursor-pointer 
-              transition-all 
-              duration-200
-              transform
-              hover:scale-105
-              hover:shadow-lg
-              ${selectedBarber?.id === barbero.id ? "ring-2 ring-blue-500 bg-blue-50" : ""}
-            `}
+            className={`bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transition-all duration-200 transform hover:scale-105 hover:shadow-lg ${selectedBarber?.id === barbero.id ? "ring-2 ring-blue-500 bg-blue-50" : ""}`}
             onClick={() => {
               setSelectedBarber(barbero);
               setFormData({ ...formData, barbero: barbero.id });
@@ -46,15 +43,13 @@ const BarberosForm = ({ formData, setFormData, barberos, selectedBarber, setSele
                   {barbero.nombre}
                 </h3>
                 <p className="text-xs text-gray-500 mt-1">
-                  Sede {barbero.sede === 1 ? "Compartir" : "Valle Grande"}
+                  Sede {Array.isArray (getSiteById) && getSiteById(selectedBarber.sede)}
                 </p>
               </div>
             </div>
           </div>
         ))}
       </div>
-
-      {/* Resumen de selección */}
       {selectedBarber && (
         <div className="mt-4 bg-white rounded-lg shadow-sm border border-gray-100">
           <div className="p-4">
@@ -75,7 +70,7 @@ const BarberosForm = ({ formData, setFormData, barberos, selectedBarber, setSele
                   {selectedBarber.nombre}
                 </p>
                 <p className="text-xs text-gray-500">
-                  Sede {selectedBarber.sede === 1 ? "Compartir" : "Valle Grande"}
+                  Sede: {getSiteById(selectedBarber.sede)}
                 </p>
               </div>
             </div>
