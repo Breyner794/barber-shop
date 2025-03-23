@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { X as XIcon } from 'lucide-react';
 import { services } from "../../data/servicesData";
-import { barberos } from "../../data/barberosData";
-import { sedes } from "../../data/sedesData";
 import CustomDatePicker from "../DateTimePicker/CustomDatePicker";
 import ServicesForm from "../services/ServicesForm";
 import SedesForm from "../sedes/sedesForm";
 import BarberosForm from "../barberos/BarberosForm";
+import { useBarbers } from "../../context/BarberContext";
 
 const FormularioReserva = ({ initialData, onSubmit, onCancel }) => {
 
     const [selectedBarber, setSelectedBarber] = useState(null);
     const [selectSede, setSelectSede] = useState(null);
+    const { getSiteById } = useBarbers();
 
   // Estado inicial del formulario
   const [formData, setFormData] = useState({
@@ -37,10 +37,6 @@ const FormularioReserva = ({ initialData, onSubmit, onCancel }) => {
     { id: 'pedicure', nombre: 'Pedicure' },
     { id: 'tinte', nombre: 'Tinte de cabello' }
   ];
-
-  
-
-  
 
   const estados = [
     { id: 'pendiente', nombre: 'Pendiente' },
@@ -158,7 +154,6 @@ const FormularioReserva = ({ initialData, onSubmit, onCancel }) => {
           <ServicesForm 
             formData={formData} 
             setFormData={setFormData} 
-            services={services}
           />
 
           {/* Fecha y hora */}
@@ -170,18 +165,18 @@ const FormularioReserva = ({ initialData, onSubmit, onCancel }) => {
           <SedesForm 
             formData={formData} 
             setFormData={setFormData} 
-            sedes={sedes} 
             selectSede={selectSede} 
             setSelectSede={setSelectSede} 
+            setSelectedBarber={setSelectedBarber}
           />
 
           {/* Barberos */}
           <BarberosForm 
             formData={formData} 
-            setFormData={setFormData} 
-            barberos={barberos} 
+            setFormData={setFormData}  
             selectedBarber={selectedBarber} 
-            setSelectedBarber={setSelectedBarber} 
+            setSelectedBarber={setSelectedBarber}
+            getSiteById={getSiteById}
           />
           
           {/* Solo mostrar selector de estado en modo edición */}
