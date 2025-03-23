@@ -1,13 +1,20 @@
 import React from "react";
+import { useSede } from "../../context/SedeContext";
 
-const SedesForm = ({ formData, setFormData, sedes, setSelectSede, selectSede }) => {
+const SedesForm = ({ formData, setFormData, setSelectSede, selectSede, setSelectedBarber }) => {
+
+  const { sedes, loading, error } = useSede();
+
+  if (loading) return <p>Cargando sedes...</p>;
+  if (error) return <p>Error al cargar sedes: {error}</p>;
+
   return (
     <div className="mb-6">
       <label className="block text-sm font-medium mb-1">Sede</label>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {sedes.map((sede) => (
           <div
-            key={sede.id}
+            key={sede._id}
             className={`
               bg-white 
               rounded-xl 
@@ -19,17 +26,18 @@ const SedesForm = ({ formData, setFormData, sedes, setSelectSede, selectSede }) 
               transform
               hover:scale-105
               hover:shadow-lg
-              ${selectSede?.id === sede.id ? "ring-2 ring-blue-500 bg-blue-50" : ""}
+              ${selectSede?._id === sede._id ? "ring-2 ring-blue-500 bg-blue-50" : ""}
             `}
             onClick={() => {
               setSelectSede(sede);
-              setFormData({ ...formData, sede: sede.id, barbero: "" }); // Resetear barbero al cambiar de sede
+              setFormData({ ...formData, sede: sede._id, barbero: "" }); // Resetear barbero al cambiar de sede
+              setSelectedBarber(null); // Resetear la selección de barbero
             }}
           >
             <div className="p-4">
               <div className="flex flex-col items-center">
                 <h3 className="text-sm font-semibold text-center text-gray-800">
-                  {sede.nombre}
+                  {sede.name_site}
                 </h3>
               </div>
             </div>
