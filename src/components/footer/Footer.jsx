@@ -9,31 +9,38 @@ const Footer = () => {
             {/* Columna 1 - Información de contacto */}
             <div>
               <h3 className="text-xl font-bold mb-4">BarberJunior</h3>
+              <hr className="w-full my-4"/>
               <ul className="space-y-2">
-                <li>📍 Dirección del local</li>
-                <li>📱 Teléfono: (123) 456-7890</li>
-                <li>✉️ Email: info@barberjunior.com</li>
+                <li>📍 Compartir Calle 102D #23-05</li>
+                <li>📍 Valle Grande Calle 80 #23 - 85</li>
+                <li>📱 Teléfono: (+57) 318 473 18 77</li>
               </ul>
             </div>
   
             {/* Columna 2 - Horarios */}
             <div>
               <h3 className="text-xl font-bold mb-4">Horarios</h3>
-              <ul className="space-y-2">
-                <li>Lunes - Viernes: 9:00 - 20:00</li>
-                <li>Sábado: 10:00 - 18:00</li>
-                <li>Domingo: Cerrado</li>
+              <hr className="w-full my-4"/>
+              <ul className="space-y-4">
+                <li>Sede Compartir</li>
+                <li>Horario: Lunes a sábado: 9:00 - 20:00</li>
+                <li>Domingo: Cerrado, excepto si hay un festivo. En ese caso, se atiende por orden de llegada.</li>
+                <hr className="w-full my-4"/>
+                <li>Sede Valle Grande</li>
+                <li>Horario: Lunes a viernes: 9:00 - 20:00</li>
+                <li>Domingo y festivos: Cerrado</li>
               </ul>
             </div>
   
             {/* Columna 3 - Redes Sociales */}
             <div>
               <h3 className="text-xl font-bold mb-4">Síguenos</h3>
+              <hr className="w-full my-4"/>
               {/* quite un flex */}
               <div className="space-x-4"> 
-                <a href="#" className="text-barber-accent hover:text-barber-links transition-colors">Instagram</a>
-                <a href="#" className="text-barber-accent hover:text-barber-links">Facebook</a>
-                {/* <a href="#" className="text-barber-accent hover:text-barber-links">Twitter</a> */}
+                <a href="https://www.facebook.com/junior.castillo.9081?locale=es_LA" className="text-barber-accent hover:text-barber-links transition-colors">Instagram</a>
+                <a href="https://www.instagram.com/caba.llerosdelsenor/" className="text-barber-accent hover:text-barber-links">Facebook</a>
+                <a href="https://www.tiktok.com/@juniorcastillo549" className="text-barber-accent hover:text-barber-links">TikTok</a>
               </div>
             </div>
           </div>
