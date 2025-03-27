@@ -37,7 +37,7 @@ const SedesForm = ({ formData, setFormData, setSelectSede, selectSede, setSelect
             <div className="p-4">
               <div className="flex flex-col items-center">
                 <h3 className="text-sm font-semibold text-center text-gray-800">
-                  {sede.name_site}
+                  {sede.name_site} - {sede.headquarter_time}
                 </h3>
               </div>
             </div>
