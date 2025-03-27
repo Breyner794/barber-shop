@@ -23,7 +23,7 @@ const BarberosForm = ({ formData, setFormData, selectedBarber, setSelectedBarber
         Selecciona tu barbero
       </label>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        {barberosFiltrados.map((barbero) => (
+        {barberosFiltrados.map((barbero, sede) => (
           <div
             key={barbero.id}
             className={`bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transition-all duration-200 transform hover:scale-105 hover:shadow-lg ${selectedBarber?.id === barbero.id ? "ring-2 ring-blue-500 bg-blue-50" : ""}`}
@@ -40,11 +40,8 @@ const BarberosForm = ({ formData, setFormData, selectedBarber, setSelectedBarber
                   className="w-16 h-16 rounded-full mb-2 object-cover border-2 border-gray-200"
                 />
                 <h3 className="text-sm font-semibold text-center text-gray-800">
-                  {barbero.nombre}
+                  {barbero.nombre} {barbero.apellido}
                 </h3>
-                <p className="text-xs text-gray-500 mt-1">
-                  Sede {Array.isArray (getSiteById) && getSiteById(selectedBarber.sede)}
-                </p>
               </div>
             </div>
           </div>
@@ -67,7 +64,7 @@ const BarberosForm = ({ formData, setFormData, selectedBarber, setSelectedBarber
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-800">
-                  {selectedBarber.nombre}
+                  {selectedBarber.nombre} {selectedBarber.apellido}
                 </p>
                 <p className="text-xs text-gray-500">
                   Sede: {getSiteById(selectedBarber.sede)}
