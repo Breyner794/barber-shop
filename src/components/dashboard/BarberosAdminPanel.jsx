@@ -4,7 +4,7 @@ import { useBarbers } from "../../context/BarberContext";
 
 const BarberosAdminPanel = () => {
   const { 
-    barbers, 
+    barber, 
     loading, 
     error, 
     addBarber, 
@@ -74,11 +74,11 @@ const BarberosAdminPanel = () => {
     setIsModalOpen(true);
   };
 
-  if (loading && barbers.length === 0) {
+  if (loading && barber.length === 0) {
     return <div className="flex-1 flex items-center justify-center">Cargando barberos...</div>;
   }
 
-  if (error && barbers.length === 0) {
+  if (error && barber.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center text-red-500">
         Error: {error}
@@ -101,12 +101,12 @@ const BarberosAdminPanel = () => {
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 m-3">
-        {barbers.length === 0 ? (
+        {barber.length === 0 ? (
           <div className="col-span-3 text-center p-6 bg-gray-100 rounded-lg">
             No hay barberos registrados.
           </div>
         ) : (
-          barbers.map((barbero) => (
+          barber.map((barbero) => (
             <div key={barbero.id} className="border rounded-lg p-4 shadow-md">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">

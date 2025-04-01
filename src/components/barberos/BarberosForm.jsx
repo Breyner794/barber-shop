@@ -2,17 +2,17 @@ import React from "react";
 import { useBarbers } from "../../context/BarberContext";
 
 const BarberosForm = ({ formData, setFormData, selectedBarber, setSelectedBarber, getSiteById }) => {
-  const { barbers, loading, error } = useBarbers();
+  const { barber, loading, error } = useBarbers();
 
-  if (!formData.sede) return null;
+  if (!formData.site) return null;
   if (loading) return <p>Cargando barberos...</p>;
   if (error) return <p>Error al cargar barberos: {error}</p>;
 
   // console.log('Barberos:', barbers); // Verifica los datos de barberos
   // console.log('Sede seleccionada:', formData.sede); // Verifica la sede seleccionada
 
-  const barberosFiltrados = barbers.filter(
-    (barbero) => barbero.sede === formData.sede
+  const barberosFiltrados = barber.filter(
+    (barbero) => barbero.site === formData.site
   );
 
   // console.log('Barberos filtrados:', barberosFiltrados); // Verifica los barberos filtrados
@@ -23,13 +23,13 @@ const BarberosForm = ({ formData, setFormData, selectedBarber, setSelectedBarber
         Selecciona tu barbero
       </label>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        {barberosFiltrados.map((barbero, sede) => (
+        {barberosFiltrados.map((barbero) => (
           <div
-            key={barbero.id}
+            key={barbero._id}
             className={`bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transition-all duration-200 transform hover:scale-105 hover:shadow-lg ${selectedBarber?.id === barbero.id ? "ring-2 ring-blue-500 bg-blue-50" : ""}`}
             onClick={() => {
               setSelectedBarber(barbero);
-              setFormData({ ...formData, barbero: barbero.id });
+              setFormData({ ...formData, barber: barbero._id });
             }}
           >
             <div className="p-4">
@@ -67,7 +67,7 @@ const BarberosForm = ({ formData, setFormData, selectedBarber, setSelectedBarber
                   {selectedBarber.nombre} {selectedBarber.apellido}
                 </p>
                 <p className="text-xs text-gray-500">
-                  Sede: {getSiteById(selectedBarber.sede)}
+                  Sede: {getSiteById(selectedBarber.site)}
                 </p>
               </div>
             </div>
