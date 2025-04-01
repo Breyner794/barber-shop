@@ -23,22 +23,11 @@ const FormularioReserva = ({ initialData, onSubmit, onCancel }) => {
     servicio: '',
     sede: '',
     barbero: '',
-    estado: 'pendiente',
-    notas: ''
+    state: 'pendiente',
+    note: ''
   });
 
-  // Opciones para los selectores
-  const servicios = [
-    { id: 'corte-clasico', nombre: 'Corte de cabello clásico' },
-    { id: 'corte-fade', nombre: 'Corte Fade' },
-    { id: 'barba', nombre: 'Corte de barba' },
-    { id: 'afeitado', nombre: 'Afeitado clásico' },
-    { id: 'manicure', nombre: 'Manicure' },
-    { id: 'pedicure', nombre: 'Pedicure' },
-    { id: 'tinte', nombre: 'Tinte de cabello' }
-  ];
-
-  const estados = [
+  const states = [
     { id: 'pendiente', nombre: 'Pendiente' },
     { id: 'confirmada', nombre: 'Confirmada' },
     { id: 'completada', nombre: 'Completada' },
@@ -57,7 +46,7 @@ const FormularioReserva = ({ initialData, onSubmit, onCancel }) => {
         servicio: initialData.servicio || '',
         sede: initialData.sede || '',
         barbero: initialData.barbero || '',
-        estado: initialData.estado || 'pendiente',
+        state: initialData.state || 'pendiente',
         notas: initialData.notas || ''
       });
     } else {
@@ -68,7 +57,7 @@ const FormularioReserva = ({ initialData, onSubmit, onCancel }) => {
       setFormData({
         ...formData,
         fecha: formattedDate,
-        estado: 'pendiente'
+        state: 'pendiente'
       });
     }
   }, [initialData]);
@@ -182,19 +171,19 @@ const FormularioReserva = ({ initialData, onSubmit, onCancel }) => {
           {/* Solo mostrar selector de estado en modo edición */}
           {initialData && (
             <div>
-              <label htmlFor="estado" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
                 Estado
               </label>
               <select
-                id="estado"
-                name="estado"
-                value={formData.estado}
+                id="state"
+                name="state"
+                value={formData.state}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                {estados.map(estado => (
-                  <option key={estado.id} value={estado.id}>
-                    {estado.nombre}
+                {states.map(state => (
+                  <option key={state.id} value={state.id}>
+                    {state.nombre}
                   </option>
                 ))}
               </select>

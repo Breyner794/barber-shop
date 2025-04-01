@@ -1,8 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Check, Edit, Trash, X as XIcon, ChevronDown, ChevronUp, Plus } from 'lucide-react';
 import FormularioReserva from './FormularioReserva';
+import { useReservation } from '../../context/ReservaContext';
 
 const GestionReservas = () => {
+  const { 
+    reservations, 
+    loading, 
+    error, 
+    createReservation, 
+    updateReservation, 
+    removeReservation 
+  } = useReservation();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedCard, setExpandedCard] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -22,37 +32,36 @@ const GestionReservas = () => {
       window.removeEventListener('resize', checkIfMobile);
     };
   }, []);
-  
-  // Datos de ejemplo para las reservas
-  const [reservations, setReservations] = useState([
-    { id: 1, nombre: 'Juan Pérez', servicio: 'Corte de cabello', fecha: '2025-02-25', hora: '10:00', estado: 'pendiente', telefono: '123-456-7890', notas: 'Primera visita' },
-    { id: 2, nombre: 'María López', servicio: 'Manicure', fecha: '2025-02-25', hora: '11:30', estado: 'confirmada', telefono: '234-567-8901', notas: 'nombree frecuente' },
-    { id: 3, nombre: 'Carlos Rodríguez', servicio: 'Pedicure', fecha: '2025-02-26', hora: '09:00', estado: 'pendiente', telefono: '345-678-9012', notas: 'Alergia a ciertos productos' },
-    { id: 4, nombre: 'Ana García', servicio: 'Tinte de cabello', fecha: '2025-02-26', hora: '14:00', estado: 'completada', telefono: '456-789-0123', notas: 'Prefiere tintes naturales' },
-    { id: 5, nombre: 'Roberto Sánchez', servicio: 'Corte de barba', fecha: '2025-02-27', hora: '16:30', estado: 'cancelada', telefono: '567-890-1234', notas: 'Canceló por enfermedad' },
-  ]);
 
   // Filtrar reservas según la búsqueda
-  const filteredReservations = reservations.filter(reservation => 
-    reservation.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    reservation.servicio.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    reservation.fecha.includes(searchQuery) ||
-    reservation.estado.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredReservations = Array.isArray(reservations) 
+    ? reservations.filter(reservation => 
+        reservation && 
+        reservation.name && 
+        (reservation.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (reservation.service && reservation.service.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (reservation.date && reservation.date.includes(searchQuery)) ||
+        (reservation.state && reservation.state.toLowerCase().includes(searchQuery.toLowerCase())))
+    ) 
+    : [];
 
   // Función para actualizar el estado de una reserva
-  const updateReservationStatus = (id, newStatus) => {
-    setReservations(
-      reservations.map(reservation => 
-        reservation.id === id ? { ...reservation, estado: newStatus } : reservation
-      )
-    );
+  const handleUpdateStatus = async (_id, newStatus) => {
+    try {
+      await updateReservation(_id, { estado: newStatus });
+    } catch (error) {
+      console.error('Error updating reservation status:', error);
+    }
   };
 
   // Función para eliminar una reserva
-  const deleteReservation = (id) => {
-    setReservations(reservations.filter(reservation => reservation.id !== id));
-    setExpandedCard(null);
+  const handleDeleteReservation = async (_id) => {
+    try {
+      await removeReservation(_id);
+      setExpandedCard(null);
+    } catch (error) {
+      console.error('Error deleting reservation:', error);
+    }
   };
 
   // Obtener el color de fondo según el estado
@@ -67,43 +76,37 @@ const GestionReservas = () => {
   };
 
   // Alternar la expansión de una tarjeta
-  const toggleCardExpansion = (id) => {
-    if (expandedCard === id) {
-      setExpandedCard(null);
-    } else {
-      setExpandedCard(id);
-    }
+  const toggleCardExpansion = (_id) => {
+    setExpandedCard(prevId => prevId === _id ? null : _id);
   };
 
   // Abrir formulario para nueva reserva
   const handleNewReservation = () => {
-    setCurrentReservation(null); // No reservation data for a new one
-    setShowForm(true);
-  };
-
-  const handleEditReservation = (id) => {
-    const reservationToEdit = reservations.find(res => res.id === id);
-    setCurrentReservation(reservationToEdit);
-    setShowForm(true);
-  };
-
-  const handleFormSubmit = (formData) => {
-    if (currentReservation) {
-      // Actualizar reserva existente
-      setReservations(
-        reservations.map(reservation => 
-          reservation.id === currentReservation.id ? { ...formData, id: currentReservation.id } : reservation
-        )
-      );
-    } else {
-      // Crear nueva reserva con ID único
-      const newId = Math.max(...reservations.map(res => res.id)) + 1;
-      setReservations([...reservations, { ...formData, id: newId }]);
-    }
-    
-    // Cerrar formulario
-    setShowForm(false);
     setCurrentReservation(null);
+    setShowForm(true);
+  };
+
+  const handleEditReservation = (reservation) => {
+    setCurrentReservation(reservation);
+    setShowForm(true);
+  };
+
+  const handleFormSubmit = async (formData) => {
+    try {
+      if (currentReservation) {
+        // Actualizar reserva existente
+        await updateReservation(currentReservation._id, formData);
+      } else {
+        // Crear nueva reserva
+        await createReservation(formData);
+      }
+      
+      // Cerrar formulario
+      setShowForm(false);
+      setCurrentReservation(null);
+    } catch (error) {
+      console.error('Error submitting reservation:', error);
+    }
   };
 
   const handleCloseForm = () => {
@@ -111,8 +114,26 @@ const GestionReservas = () => {
     setCurrentReservation(null);
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-blue-500"></div>
+        <span className="ml-2">Cargando reservas...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-full text-red-500">
+        Error: {error.message}
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 overflow-auto">
+      {/* Formulario de Reserva Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-3xl max-h-[90vh] overflow-auto">
@@ -139,11 +160,13 @@ const GestionReservas = () => {
         </div>
       )}
 
+      {/* Encabezado */}
       <header className="sticky top-0 z-30 flex items-center justify-between h-16 pr-4 pl-20 bg-white shadow-md">
         <h2 className="text-xl font-semibold text-gray-800">
           Gestión de Reservas
         </h2>
         <div className="flex items-center space-x-3">
+          {/* Barra de búsqueda */}
           <div className="relative">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <Search size={18} className="text-gray-400" />
@@ -156,6 +179,8 @@ const GestionReservas = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
+          
+          {/* Botón Nueva Reserva */}
           <button
             onClick={handleNewReservation}
             className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -166,45 +191,31 @@ const GestionReservas = () => {
         </div>
       </header>
 
+      {/* Contenido Principal */}
       <main className="p-4 md:p-6">
         <div className="mb-6">
           <h3 className="mb-4 text-lg font-medium text-gray-700">
             Reservas Actuales
           </h3>
 
-          {/* Vista de tabla para escritorio*/}
+          {/* Vista de tabla para escritorio */}
           <div className="hidden lg:block overflow-x-auto bg-white rounded-lg shadow">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
-                  >
-                    nombree
+                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                    Nombre
                   </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
-                  >
+                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                     Servicio
                   </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
-                  >
+                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                     Fecha y Hora
                   </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
-                  >
+                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                     Estado
                   </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase"
-                  >
+                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
                     Acciones
                   </th>
                 </tr>
@@ -214,39 +225,27 @@ const GestionReservas = () => {
                   <tr key={reservation.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="font-medium text-gray-900">
-                        {reservation.nombre}
+                        {reservation.name}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-gray-500">
-                        {reservation.servicio}
+                        {reservation.service}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-gray-500">
-                        {reservation.fecha}, {reservation.hora}
+                        {reservation.date}, {reservation.hour}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                          reservation.estado
-                        )}`}
-                      >
-                        {reservation.estado.charAt(0).toUpperCase() +
-                          reservation.estado.slice(1)}
-                      </span>
+                      
                     </td>
                     <td className="px-6 py-4 text-sm text-center whitespace-nowrap">
                       <div className="flex justify-center space-x-2">
-                        {reservation.estado !== "confirmada" && (
+                        {reservation.state !== "confirmada" && (
                           <button
-                            onClick={() =>
-                              updateReservationStatus(
-                                reservation.id,
-                                "confirmada"
-                              )
-                            }
+                            onClick={() => handleUpdateStatus(reservation._id, "confirmada")}
                             className="p-1 text-blue-600 bg-blue-100 rounded-full hover:bg-blue-200"
                             title="Confirmar"
                           >
@@ -254,14 +253,9 @@ const GestionReservas = () => {
                           </button>
                         )}
 
-                        {reservation.estado !== "completada" && (
+                        {reservation.state !== "completada" && (
                           <button
-                            onClick={() =>
-                              updateReservationStatus(
-                                reservation.id,
-                                "completada"
-                              )
-                            }
+                            onClick={() => handleUpdateStatus(reservation._id, "completada")}
                             className="p-1 text-green-600 bg-green-100 rounded-full hover:bg-green-200"
                             title="Completar"
                           >
@@ -269,14 +263,9 @@ const GestionReservas = () => {
                           </button>
                         )}
 
-                        {reservation.estado !== "cancelada" && (
+                        {reservation.state !== "cancelada" && (
                           <button
-                            onClick={() =>
-                              updateReservationStatus(
-                                reservation.id,
-                                "cancelada"
-                              )
-                            }
+                            onClick={() => handleUpdateStatus(reservation._id, "cancelada")}
                             className="p-1 text-red-600 bg-red-100 rounded-full hover:bg-red-200"
                             title="Cancelar"
                           >
@@ -285,10 +274,7 @@ const GestionReservas = () => {
                         )}
 
                         <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditReservation(reservation.id);
-                        }}
+                          onClick={() => handleEditReservation(reservation)}
                           className="p-1 text-indigo-600 bg-indigo-100 rounded-full hover:bg-indigo-200"
                           title="Editar"
                         >
@@ -296,7 +282,7 @@ const GestionReservas = () => {
                         </button>
 
                         <button
-                          onClick={() => deleteReservation(reservation.id)}
+                          onClick={() => handleDeleteReservation(reservation._id)}
                           className="p-1 text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200"
                           title="Eliminar"
                         >
@@ -330,28 +316,21 @@ const GestionReservas = () => {
                 >
                   <div
                     className="p-4 flex items-center justify-between cursor-pointer"
-                    onClick={() => toggleCardExpansion(reservation.id)}
+                    onClick={() => toggleCardExpansion(reservation._id)}
                   >
                     <div className="flex-1">
                       <div className="font-medium text-gray-900">
-                        {reservation.nombre}
+                        {reservation.name}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {reservation.fecha}, {reservation.hora}
+                        {reservation.date}, {reservation.hour}
                       </div>
                       <div className="mt-1">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                            reservation.estado
-                          )}`}
-                        >
-                          {reservation.estado.charAt(0).toUpperCase() +
-                            reservation.estado.slice(1)}
-                        </span>
+                        
                       </div>
                     </div>
                     <div>
-                      {expandedCard === reservation.id ? (
+                      {expandedCard === reservation._id ? (
                         <ChevronUp size={20} className="text-gray-500" />
                       ) : (
                         <ChevronDown size={20} className="text-gray-500" />
@@ -359,26 +338,26 @@ const GestionReservas = () => {
                     </div>
                   </div>
 
-                  {expandedCard === reservation.id && (
+                  {expandedCard === reservation._id && (
                     <div className="px-4 pb-4 pt-2 border-t border-gray-200">
                       <div className="grid grid-cols-2 gap-2 mb-4">
                         <div>
                           <div className="text-xs text-gray-500">Servicio</div>
                           <div className="text-sm font-medium">
-                            {reservation.servicio}
+                            {reservation.service}
                           </div>
                         </div>
                         <div>
                           <div className="text-xs text-gray-500">Teléfono</div>
                           <div className="text-sm font-medium">
-                            {reservation.telefono}
+                            {reservation.phone}
                           </div>
                         </div>
                       </div>
 
                       <div className="mb-4">
                         <div className="text-xs text-gray-500">Notas</div>
-                        <div className="text-sm">{reservation.notas}</div>
+                        <div className="text-sm">{reservation.notes}</div>
                       </div>
 
                       <div className="flex flex-wrap gap-2 justify-center">
@@ -386,10 +365,7 @@ const GestionReservas = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              updateReservationStatus(
-                                reservation.id,
-                                "confirmada"
-                              );
+                              handleUpdateStatus(reservation.id, "confirmada");
                             }}
                             className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200"
                           >
@@ -401,10 +377,7 @@ const GestionReservas = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              updateReservationStatus(
-                                reservation.id,
-                                "completada"
-                              );
+                              handleUpdateStatus(reservation.id, "completada");
                             }}
                             className="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm hover:bg-green-200"
                           >
@@ -416,10 +389,7 @@ const GestionReservas = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              updateReservationStatus(
-                                reservation.id,
-                                "cancelada"
-                              );
+                              handleUpdateStatus(reservation.id, "cancelada");
                             }}
                             className="inline-flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm hover:bg-red-200"
                           >
@@ -430,7 +400,7 @@ const GestionReservas = () => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleEditReservation(reservation.id);
+                            handleEditReservation(reservation);
                           }}
                           className="inline-flex items-center px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm hover:bg-indigo-200"
                         >
@@ -440,7 +410,7 @@ const GestionReservas = () => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            deleteReservation(reservation.id);
+                            handleDeleteReservation(reservation.id);
                           }}
                           className="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200"
                         >
