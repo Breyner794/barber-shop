@@ -6,7 +6,7 @@ const SedeContext = createContext();
 
 // Proveedor del contexto
 export const SedeProvider = ({ children }) => {
-  const [sedes, setSedes] = useState([]);
+  const [sites, setSedes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -81,7 +81,7 @@ export const SedeProvider = ({ children }) => {
 
   // Valor del contexto
   const value = {
-    sedes,
+    sites,
     loading,
     error,
     fetchSedes,
