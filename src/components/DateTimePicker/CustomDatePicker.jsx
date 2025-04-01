@@ -17,8 +17,8 @@ const theme = createTheme({
 
 const CustomDatePicker = ({ formData, setFormData }) => {
   // Estado local para manejar la fecha seleccionada
-  const [selectedDate, setSelectedDate] = useState(formData.fecha ? new Date(formData.fecha) : null);
-  const [selectedTime, setSelectedTime] = useState(formData.hora ? new Date(`2024-01-01T${formData.hora}`) : null);
+  const [selectedDate, setSelectedDate] = useState(formData.date ? new Date(formData.date) : null);
+  const [selectedTime, setSelectedTime] = useState(formData.hour ? new Date(`2024-01-01T${formData.hour}`) : null);
 
   // Función para manejar el cambio de fecha
   const handleDateChange = (newDate) => {
@@ -26,7 +26,7 @@ const CustomDatePicker = ({ formData, setFormData }) => {
     const formattedDate = newDate.toISOString().split('T')[0];
     setFormData(prev => ({
       ...prev,
-      fecha: formattedDate
+      date: formattedDate
     }));
   };
 
@@ -41,7 +41,7 @@ const CustomDatePicker = ({ formData, setFormData }) => {
       });
       setFormData(prev => ({
         ...prev,
-        hora: formattedTime
+        hour: formattedTime
       }));
     }
   };
