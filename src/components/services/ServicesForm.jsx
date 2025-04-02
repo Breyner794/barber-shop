@@ -9,9 +9,9 @@ const ServicesForm = ({ formData, setFormData }) => {
 
   // Función para obtener el servicio seleccionado
   const getSelectedService = () => {
-    if (!hasServices || !formData.servicio) return null;
+    if (!hasServices || !formData.service) return null;
     return services.find(
-      (s) => s.id === formData.servicio || s._id === formData.servicio
+      (s) => s.id === formData.service || s._id === formData.service
     );
   };
 
@@ -73,14 +73,14 @@ const ServicesForm = ({ formData, setFormData }) => {
                 duration-200
                 hover:shadow-lg
                 ${
-                  formData.servicio === service.id || formData.servicio === service._id
+                  formData.service === service.id || formData.service === service._id
                     ? "ring-2 ring-blue-500 bg-blue-50"
                     : "hover:bg-gray-50"
                 }
               `}
               onClick={() => setFormData({ 
                 ...formData, 
-                servicio: service._id || service.id 
+                service: service._id || service.id 
               })}
             >
               <div className="p-4 flex flex-col items-center">
