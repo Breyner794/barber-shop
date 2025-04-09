@@ -176,7 +176,7 @@ const FormularioReserva = ({ initialData, onCancel, onSuccess }) => {
           <h3 className="text-lg font-medium text-gray-700 mb-3">
             Información del Cliente
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div>
               <label
                 htmlFor="name"
@@ -237,7 +237,7 @@ const FormularioReserva = ({ initialData, onCancel, onSuccess }) => {
           <h3 className="text-lg font-medium text-gray-700 mb-3">
             Detalles de la Reserva
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Selector de Servicios */}
             <ServicesForm formData={formData} setFormData={setFormData} />
 

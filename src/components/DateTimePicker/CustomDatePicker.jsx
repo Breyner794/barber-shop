@@ -83,7 +83,7 @@ const CustomDatePicker = ({ formData, setFormData }) => {
             />
           </Paper>
 
-          <Paper elevation={3} sx={{ p: 2, borderRadius: 2 }}>
+          <Paper elevation={3} sx={{ p: 2, borderRadius: 2, textAlign: 'center' }}>
             <TimePicker
               label="Hora de la cita"
               value={selectedTime}
