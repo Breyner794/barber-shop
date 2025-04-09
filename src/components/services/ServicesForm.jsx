@@ -88,7 +88,7 @@ const ServicesForm = ({ formData, setFormData }) => {
                 <div className="text-4xl mb-4 text-center">{service.icon}</div>
 
                 <div className="text-center w-full">
-                  <h3 className="text-xl font-bold mb-2">{service.title}</h3>
+                  <h3 className="font-bold mb-2">{service.title}</h3>
                   <p className="text-2xl font-bold text-barber-accent mb-2">
                     $ {service.price.toLocaleString('es-CO')}
                   </p>
@@ -118,7 +118,7 @@ const ServicesForm = ({ formData, setFormData }) => {
         <div className="mt-4 bg-gray-50 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="text-3xl">
+              <div className="text-2xl">
                 {selectedService.icon}
               </div>
               <div>

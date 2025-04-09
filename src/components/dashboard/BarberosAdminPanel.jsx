@@ -130,7 +130,7 @@ const BarberosAdminPanel = () => {
               <div className="grid grid-cols-2">
                 <div className="flex flex-col">
                   <p>ID: {barbero.id}</p>
-                  <p>Sede: {getSiteById(barbero.sede)}</p>
+                  <p>Sede: {getSiteById(barbero.site)}</p>
                 </div>
                 <div className="flex items-center justify-center">
                   {barbero.imageUrl ? (
