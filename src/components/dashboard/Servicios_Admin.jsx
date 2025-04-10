@@ -8,6 +8,7 @@ import {
   PlusCircle 
 } from 'lucide-react';
 import { getAllServices, getByIdServices, createServices, updateServices, deleteService} from '../../services/serviceClient.js';
+import Swal from 'sweetalert2';
 
 const ServicesAdminPanel = () => {
   const [services, setServices] = useState([]);
@@ -41,11 +42,35 @@ const ServicesAdminPanel = () => {
 
   const handleDeleteService = async (id) => {
     try {
-      await deleteService(id);
-      // Recargar los servicios después de eliminar
-      await fetchServices();
+      const result = await Swal.fire({
+        title: "¿Estás seguro?",
+        text: "¡No podrás revertir esto!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "¡Sí, elimínalo!",
+      });
+      if (result.isConfirmed) {
+        await deleteService(id);
+
+        Swal.fire({
+          title: "¡Eliminado!",
+          text: "Tu servicio ha sido eliminado.",
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2500,
+        });
+        // Recargar los servicios después de eliminar
+        await fetchServices();
+      }
     } catch (error) {
-      console.error('Error deleting service:', error);
+      console.error("Error deleting service:", error);
+      Swal.fire({
+        title: "Error",
+        text: `¡No se pudo eliminar el servicio! ${error}`,
+        icon: "error"
+      });
     }
   };
 
@@ -86,9 +111,22 @@ const ServicesAdminPanel = () => {
       if (editingService._id) {
         // Actualizar servicio existente
         await updateServices(editingService._id, editingService);
+        await Swal.fire({
+          icon: "success",
+          title: "Los Cambios Se  Aplicaron Exitosamente",
+          showConfirmButton: false,
+          timer: 1500
+        });
       } else {
         // Crear nuevo servicio
         await createServices(editingService);
+
+        await Swal.fire({
+          icon: "success",
+          title: "Servicio Creado Exitosamente",
+          showConfirmButton: false,
+          timer: 1500
+        });
       }
       
       // Recargar la lista completa después de guardar
@@ -96,6 +134,13 @@ const ServicesAdminPanel = () => {
       setIsModalOpen(false);
     } catch (error) {
       console.error('Error saving service:', error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: `¡Algo salió mal! ${error}`,
+        showConfirmButton: false,
+        timer: 2500
+      });
     }
   };
 
