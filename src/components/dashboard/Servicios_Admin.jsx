@@ -69,7 +69,9 @@ const ServicesAdminPanel = () => {
       Swal.fire({
         title: "Error",
         text: `¡No se pudo eliminar el servicio! ${error}`,
-        icon: "error"
+        icon: "error",
+        showConfirmButton: false,
+        timer: 1500
       });
     }
   };
