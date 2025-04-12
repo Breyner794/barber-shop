@@ -2,13 +2,28 @@ import React, { useState, useEffect } from 'react';
 import { Search, Check, Edit, Trash, X as XIcon, ChevronDown, ChevronUp, Plus } from 'lucide-react';
 import FormularioReserva from './FormularioReserva';
 
+import { getAllReservas , eliminarReservas, updateReservas } from '../../services/reservaClient'
+
+
+
+
+
+
+
 const GestionReservas = () => {
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedCard, setExpandedCard] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [currentReservation, setCurrentReservation] = useState(null);
   
+  const [reservations, setReservations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  
+
   // Detectar si es dispositivo móvil
   useEffect(() => {
     const checkIfMobile = () => {
@@ -22,15 +37,78 @@ const GestionReservas = () => {
       window.removeEventListener('resize', checkIfMobile);
     };
   }, []);
+
   
+
+    
+
+    
+  // efecto para cargar los datos que se encuentra registrados en la base de datos 
+  useEffect(() => {
+    
+    async function loadReservations() {
+      try {
+        setLoading(true);
+        const response = await getAllReservas();
+        
+        // infromacion que se mostrara en la consola del navegador, la cual dara a entender si los datos fueron llamandos desde el back
+        console.log("Respuesta completa de la API:", response);
+        
+        let data = [];
+        
+        if (Array.isArray(response)) {
+          data = response;
+        } else if (response?.data && Array.isArray(response.data)) {
+          data = response.data;
+        } else if (response?.data?.data && Array.isArray(response.data.data)) {
+          data = response.data.data;
+        } else {
+          throw new Error("Formato de respuesta no reconocido");
+        }
+
+        // Mapear los datos de la API a la estructura esperada por el componente
+        const mappedData = data.map(item => ({
+          id: item._id,
+          nombre: item.name,
+          servicio: item.service,
+          fecha: item.date,
+          hora: item.hour,
+          estado: item.state,
+          telefono: item.phone,
+          email: item.email,
+          notas: item.notes,
+          barbero: item.barber || { name_barber: "Sin asignar" } // Asegura que siempre haya un objeto
+        }));
+
+        console.log("Datos mapeados:", mappedData);
+        setReservations(mappedData);
+        setError(null);
+      } catch (err) {
+        console.error("Error cargando reservas:", err);
+        setError(err.message || "Error al cargar las reservas");
+        setReservations([]);
+      } finally {
+        setLoading(false);
+      }
+
+
+    
+
+
+
+
+    }
+
+    loadReservations();
+  }, []);
+
+
+
+
+
+  
+
   // Datos de ejemplo para las reservas
-  const [reservations, setReservations] = useState([
-    { id: 1, nombre: 'Juan Pérez', servicio: 'Corte de cabello', fecha: '2025-02-25', hora: '10:00', estado: 'pendiente', telefono: '123-456-7890', notas: 'Primera visita' },
-    { id: 2, nombre: 'María López', servicio: 'Manicure', fecha: '2025-02-25', hora: '11:30', estado: 'confirmada', telefono: '234-567-8901', notas: 'nombree frecuente' },
-    { id: 3, nombre: 'Carlos Rodríguez', servicio: 'Pedicure', fecha: '2025-02-26', hora: '09:00', estado: 'pendiente', telefono: '345-678-9012', notas: 'Alergia a ciertos productos' },
-    { id: 4, nombre: 'Ana García', servicio: 'Tinte de cabello', fecha: '2025-02-26', hora: '14:00', estado: 'completada', telefono: '456-789-0123', notas: 'Prefiere tintes naturales' },
-    { id: 5, nombre: 'Roberto Sánchez', servicio: 'Corte de barba', fecha: '2025-02-27', hora: '16:30', estado: 'cancelada', telefono: '567-890-1234', notas: 'Canceló por enfermedad' },
-  ]);
 
   // Filtrar reservas según la búsqueda
   const filteredReservations = reservations.filter(reservation => 
@@ -50,10 +128,20 @@ const GestionReservas = () => {
   };
 
   // Función para eliminar una reserva
-  const deleteReservation = (id) => {
-    setReservations(reservations.filter(reservation => reservation.id !== id));
-    setExpandedCard(null);
+  const deleteReservation = async (id) => {
+    try {
+      // Llamar a la API para eliminar en el backend
+      await eliminarReservas(id);
+      
+      // Actualizar el estado local si la eliminación fue exitosa
+      setReservations(reservations.filter(reservation => reservation.id !== id));
+      setExpandedCard(null);
+    } catch (error) {
+      console.error("Error al eliminar la reserva:", error);
+      // Puedes mostrar un mensaje de error al usuario aquí
+    }
   };
+  
 
   // Obtener el color de fondo según el estado
   const getStatusColor = (estado) => {
@@ -201,6 +289,14 @@ const GestionReservas = () => {
                   >
                     Estado
                   </th>
+
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
+                  >
+                    Barbero
+                  </th>
+                  
                   <th
                     scope="col"
                     className="px-6 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase"
@@ -219,14 +315,20 @@ const GestionReservas = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-gray-500">
-                        {reservation.servicio}
+                      {reservation.servicio?.title || 'Servicio no especificado'}
                       </div>
                     </td>
+
+          
+
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-gray-500">
                         {reservation.fecha}, {reservation.hora}
                       </div>
                     </td>
+                    
+                  
+
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
@@ -237,6 +339,14 @@ const GestionReservas = () => {
                           reservation.estado.slice(1)}
                       </span>
                     </td>
+
+                    
+                    <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-gray-500">
+                          {reservation.barbero?.name_barber || "Sin asignar"}
+                        </div>
+                      </td>
+
                     <td className="px-6 py-4 text-sm text-center whitespace-nowrap">
                       <div className="flex justify-center space-x-2">
                         {reservation.estado !== "confirmada" && (
@@ -295,11 +405,11 @@ const GestionReservas = () => {
                           <Edit size={16} />
                         </button>
 
+                  
                         <button
                           onClick={() => deleteReservation(reservation.id)}
                           className="p-1 text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200"
-                          title="Eliminar"
-                        >
+                          title="Eliminar">
                           <Trash size={16} />
                         </button>
                       </div>
@@ -336,9 +446,23 @@ const GestionReservas = () => {
                       <div className="font-medium text-gray-900">
                         {reservation.nombre}
                       </div>
+                      
+                      <div className="font-medium text-gray-900">
+                        {reservation.servicio?.title}
+                      </div>
+
                       <div className="text-sm text-gray-500">
                         {reservation.fecha}, {reservation.hora}
                       </div>
+
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-gray-500">
+                          {reservation.barbero?.name_barber || "Sin asignar"}
+                        </div>
+                      </td>
+                    
+
+                    
                       <div className="mt-1">
                         <span
                           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(

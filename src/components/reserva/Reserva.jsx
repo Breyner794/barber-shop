@@ -5,7 +5,7 @@ import { barberos } from "../../data/barberosData";
 import { sedes } from "../../data/sedesData";
 import CustomDatePicker from "../DateTimePicker/CustomDatePicker";
 import ServicesForm from "../services/ServicesForm";
-import SedesForm from "../sedes/sedesForm";
+//import SedesForm from "../sedes/sedesForm";
 import BarberosForm from "../barberos/BarberosForm";
 
 const Reserva = () => {
@@ -90,13 +90,15 @@ const Reserva = () => {
           </div>
 
           {/* Sedes */}
+          {/*
           <SedesForm 
             formData={formData} 
             setFormData={setFormData} 
-            sedes={sedes} 
+            setSelectedBarber={setSelectedBarber} 
             selectSede={selectSede} 
             setSelectSede={setSelectSede} 
           />
+          */}
 
           {/* Barberos */}
           <BarberosForm 

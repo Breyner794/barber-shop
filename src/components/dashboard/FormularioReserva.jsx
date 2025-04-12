@@ -3,7 +3,7 @@ import { X as XIcon } from 'lucide-react';
 import { services } from "../../data/servicesData";
 import CustomDatePicker from "../DateTimePicker/CustomDatePicker";
 import ServicesForm from "../services/ServicesForm";
-import SedesForm from "../sedes/sedesForm";
+import SedesForm from "../sedes/SedesForm";
 import BarberosForm from "../barberos/BarberosForm";
 import { useBarbers } from "../../context/BarberContext";
 
