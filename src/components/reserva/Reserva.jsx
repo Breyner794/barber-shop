@@ -3,7 +3,7 @@ import { X as XIcon } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import CustomDatePicker from "../DateTimePicker/CustomDatePicker";
 import ServicesForm from "../services/ServicesForm";
-import SedesForm from "../sedes/sedesForm";
+//import SedesForm from "../sedes/sedesForm";
 import BarberosForm from "../barberos/BarberosForm";
 import { useReservations } from "../../context/ReservaContext";
 import { useBarbers } from "../../context/BarberContext";
@@ -183,7 +183,7 @@ const Reserva = ({ onSuccess }) => {
             setSelectSede={setSelectSede}
             setSelectedBarber={setSelectedBarber}
           />
-
+          
           {/* Barberos */}
           <BarberosForm
             formData={formData}
