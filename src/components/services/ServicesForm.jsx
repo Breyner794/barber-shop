@@ -9,9 +9,9 @@ const ServicesForm = ({ formData, setFormData }) => {
 
   // Función para obtener el servicio seleccionado
   const getSelectedService = () => {
-    if (!hasServices || !formData.servicio) return null;
+    if (!hasServices || !formData.service) return null;
     return services.find(
-      (s) => s.id === formData.servicio || s._id === formData.servicio
+      (s) => s.id === formData.service || s._id === formData.service
     );
   };
 
@@ -73,14 +73,14 @@ const ServicesForm = ({ formData, setFormData }) => {
                 duration-200
                 hover:shadow-lg
                 ${
-                  formData.servicio === service.id || formData.servicio === service._id
+                  formData.service === service.id || formData.service === service._id
                     ? "ring-2 ring-blue-500 bg-blue-50"
                     : "hover:bg-gray-50"
                 }
               `}
               onClick={() => setFormData({ 
                 ...formData, 
-                servicio: service._id || service.id 
+                service: service._id || service.id 
               })}
             >
               <div className="p-4 flex flex-col items-center">
@@ -88,7 +88,7 @@ const ServicesForm = ({ formData, setFormData }) => {
                 <div className="text-4xl mb-4 text-center">{service.icon}</div>
 
                 <div className="text-center w-full">
-                  <h3 className="text-xl font-bold mb-2">{service.title}</h3>
+                  <h3 className="font-bold mb-2">{service.title}</h3>
                   <p className="text-2xl font-bold text-barber-accent mb-2">
                     $ {service.price.toLocaleString('es-CO')}
                   </p>
@@ -118,7 +118,7 @@ const ServicesForm = ({ formData, setFormData }) => {
         <div className="mt-4 bg-gray-50 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="text-3xl">
+              <div className="text-2xl">
                 {selectedService.icon}
               </div>
               <div>

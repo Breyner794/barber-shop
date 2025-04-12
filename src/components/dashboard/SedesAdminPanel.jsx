@@ -10,7 +10,7 @@ import {
 import { useSede } from '../../context/SedeContext.jsx'; // Importa el hook del contexto
 
 const SedesAdminPanel = () => {
-  const { sedes, loading, addSede, editSede, removeSede } = useSede(); // Usa el contexto
+  const { sites, loading, addSede, editSede, removeSede } = useSede(); // Usa el contexto
   const [editingSede, setEditingSede] = useState({
     name_site: "",
     address_site: "",
@@ -83,7 +83,7 @@ const SedesAdminPanel = () => {
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 m-3">
-        {sedes.map((sede) => (
+        {sites.map((sede) => (
           <div 
             key={sede._id} 
             className="border rounded-lg p-4 shadow-md"

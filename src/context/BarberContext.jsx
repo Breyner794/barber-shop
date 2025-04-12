@@ -11,7 +11,7 @@ export const useBarbers = () => useContext(BarberContext);
 
 // Proveedor del contexto
 export const BarberProvider = ({ children }) => {
-  const [barbers, setBarbers] = useState([]);
+  const [barber, setBarbers] = useState([]);
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -36,7 +36,7 @@ export const BarberProvider = ({ children }) => {
         id: barber.id_barber, // Usar el id_barber como id para mantener compatibilidad
         nombre: barber.name_barber,
         apellido: barber.last_name_barber,
-        sede: barber.site_barber,
+        site: barber.site_barber,
         imageUrl: barber.imageUrl || "/src/assets/image/usuario.png",
         _id: barber._id // Guardar el _id de MongoDB para operaciones de CRUD
       }));
@@ -155,7 +155,7 @@ export const BarberProvider = ({ children }) => {
 
   // Valores que se compartirán a través del contexto
   const value = {
-    barbers,
+    barber,
     sites,
     loading,
     error,
