@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Trash2, Edit, Plus, X, Save, User } from "lucide-react";
 import { useBarbers } from "../../context/BarberContext";
+import Swal from "sweetalert2";
 
 const BarberosAdminPanel = () => {
   const { 
@@ -10,7 +11,8 @@ const BarberosAdminPanel = () => {
     addBarber, 
     editBarber, 
     removeBarber, 
-    getSiteById
+    getSiteById,
+    sites
   } = useBarbers();
   
   const [editingBarbero, setEditingBarbero] = useState(null);
@@ -22,12 +24,34 @@ const BarberosAdminPanel = () => {
   };
 
   const handleDeleteBarbero = async (barbero) => {
-    if (window.confirm(`¿Estás seguro de eliminar a ${barbero.nombre} ${barbero.apellido}?`)) {
-      try {
+    try {
+      const result = await Swal.fire({
+        title: "¿Estás seguro?",
+        text: "¡No podrás revertir esto!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "¡Sí, elimínalo!",
+      });
+      if (result.isConfirmed) {
         await removeBarber(barbero.id, barbero._id);
-      } catch (error) {
-        alert("Error al eliminar el barbero");
-      }
+
+        Swal.fire({
+          title: "¡Eliminado!",
+          text: "Tu servicio ha sido eliminado.",
+          icon: "success",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+      };
+    } catch (error) {
+      console.error("Error deleting barber:", error);
+      Swal.fire({
+        title: "Error",
+        text: `¡No se pudo eliminar el barbero! ${error}`,
+        icon: "error",
+      });
     }
   };
 
@@ -52,13 +76,32 @@ const BarberosAdminPanel = () => {
       if (editingBarbero._id) {
         // Actualizar barbero existente
         await editBarber(editingBarbero);
+        await Swal.fire({
+          icon: "success",
+          title: "Barbero Actualizado Exitosamente",
+          showConfirmButton: false,
+          timer: 1500,
+        });
       } else {
         // Agregar nuevo barbero
         await addBarber(editingBarbero);
+        await Swal.fire({
+          icon: "success",
+          title: "Barbero Creado Exitosamente",
+          showConfirmButton: false,
+          timer: 1500,
+        });
       }
       setIsModalOpen(false);
     } catch (error) {
-      alert("Error al guardar los cambios");
+      console.error("Error deleting barber:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: `¡Algo salió mal! ${error}`,
+        showConfirmButton: false,
+        timer: 2500,
+      });
     }
   };
 
@@ -78,13 +121,13 @@ const BarberosAdminPanel = () => {
     return <div className="flex-1 flex items-center justify-center">Cargando barberos...</div>;
   }
 
-  if (error && barber.length === 0) {
-    return (
-      <div className="flex-1 flex items-center justify-center text-red-500">
-        Error: {error}
-      </div>
-    );
-  }
+  // if (error && barber.length === 0) {
+  //   return (
+  //     <div className="flex-1 flex items-center justify-center text-red-500">
+  //       Error: {error}
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="flex-1 overflow-auto">
@@ -206,7 +249,7 @@ const BarberosAdminPanel = () => {
                 >
                   <option value="">Selecciona una sede</option>
                   {/* Aquí usamos los sites del contexto */}
-                  {useBarbers().sites.map((sede) => (
+                  {sites.map((sede) => (
                     <option key={sede.id} value={sede.id}>
                       {sede.nombre}
                     </option>
