@@ -1,5 +1,10 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { getAllSite, createSite, updateSite, deleteSite } from '../services/sedesClient';
+import React, { createContext, useState, useContext, useEffect } from "react";
+import {
+  getAllSite,
+  createSite,
+  updateSite,
+  deleteSite,
+} from "../services/sedesClient";
 
 // Crear el contexto
 const SedeContext = createContext();
@@ -10,17 +15,25 @@ export const SedeProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Cargar las sedes cuando se monta el componente
+  useEffect(() => {
+    fetchSedes();
+  }, []);
+
   // Función para obtener todas las sedes
   const fetchSedes = async () => {
     try {
       setLoading(true);
       setError(null);
       const response = await getAllSite();
-      const sedeData = response.data ? response.data : response;
+      const sedeData = Array.isArray(response)
+        ? response
+        : response?.data || [];
+
       setSedes(sedeData);
     } catch (error) {
-      console.error('Error cargando sedes:', error);
-      setError('Error al cargar las sedes');
+      console.error("Error cargando sedes:", error);
+      setError("Error al cargar las sedes");
     } finally {
       setLoading(false);
     }
@@ -34,8 +47,8 @@ export const SedeProvider = ({ children }) => {
       await fetchSedes();
       return { success: true };
     } catch (error) {
-      console.error('Error al crear sede:', error);
-      setError('Error al crear la sede');
+      console.error("Error al crear sede:", error);
+      setError("Error al crear la sede");
       return { success: false, error };
     } finally {
       setLoading(false);
@@ -50,8 +63,8 @@ export const SedeProvider = ({ children }) => {
       await fetchSedes();
       return { success: true };
     } catch (error) {
-      console.error('Error al actualizar sede:', error);
-      setError('Error al actualizar la sede');
+      console.error("Error al actualizar sede:", error);
+      setError("Error al actualizar la sede");
       return { success: false, error };
     } finally {
       setLoading(false);
@@ -63,21 +76,17 @@ export const SedeProvider = ({ children }) => {
     try {
       setLoading(true);
       await deleteSite(id);
-      await fetchSedes();
-      return { success: true };
+      // Actualizar el estado directamente en lugar de hacer fetchSedes()
+      setSedes((prev) => prev.filter((sede) => sede._id !== id));
+      return true;
     } catch (error) {
-      console.error('Error al eliminar sede:', error);
-      setError('Error al eliminar la sede');
-      return { success: false, error };
+      console.error("Error al eliminar sede:", error);
+      setError("Error al eliminar la sede");
+      throw error;
     } finally {
       setLoading(false);
     }
   };
-
-  // Cargar las sedes cuando se monta el componente
-  useEffect(() => {
-    fetchSedes();
-  }, []);
 
   // Valor del contexto
   const value = {
@@ -93,11 +102,6 @@ export const SedeProvider = ({ children }) => {
   return <SedeContext.Provider value={value}>{children}</SedeContext.Provider>;
 };
 
-// Hook personalizado para usar el contexto
-export const useSede = () => {
-  const context = useContext(SedeContext);
-  if (!context) {
-    throw new Error('useSede debe ser usado dentro de un SedeProvider');
-  }
-  return context;
-};
+export const useSede = () => useContext(SedeContext);
+
+export default SedeProvider;
