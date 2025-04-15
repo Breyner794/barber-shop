@@ -46,6 +46,8 @@ const SedesAdminPanel = () => {
         title: "Error",
         text: `¡No se pudo eliminar la Sede! ${error}`,
         icon: "error",
+        confirmButtonColor: '#d33', // Color rojo para errores
+        confirmButtonText: 'OK'
       });
     }
   };
@@ -85,8 +87,8 @@ const SedesAdminPanel = () => {
         icon: "error",
         title: "Oops...",
         text: `¡Algo salió mal! ${error}`,
-        showConfirmButton: false,
-        timer: 2500,
+        confirmButtonColor: '#d33', // Color rojo para errores
+        confirmButtonText: 'OK'
       });
     }
   };
