@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { Trash2, Edit, Plus, X, Save, User } from "lucide-react";
 import { useBarbers } from "../../context/BarberContext";
+import { useSede } from "../../context/SedeContext";
 import Swal from "sweetalert2";
 
 const BarberosAdminPanel = () => {
+  
   const { 
     barber, 
     loading, 
@@ -12,9 +14,8 @@ const BarberosAdminPanel = () => {
     editBarber, 
     removeBarber, 
     getSiteById,
-    sites
   } = useBarbers();
-  
+  const {sites} = useSede();
   const [editingBarbero, setEditingBarbero] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -51,6 +52,8 @@ const BarberosAdminPanel = () => {
         title: "Error",
         text: `¡No se pudo eliminar el barbero! ${error}`,
         icon: "error",
+        confirmButtonColor: '#d33', // Color rojo para errores
+        confirmButtonText: 'OK'
       });
     }
   };
@@ -99,8 +102,8 @@ const BarberosAdminPanel = () => {
         icon: "error",
         title: "Oops...",
         text: `¡Algo salió mal! ${error}`,
-        showConfirmButton: false,
-        timer: 2500,
+        confirmButtonColor: '#d33', // Color rojo para errores
+        confirmButtonText: 'OK'
       });
     }
   };
@@ -250,8 +253,8 @@ const BarberosAdminPanel = () => {
                   <option value="">Selecciona una sede</option>
                   {/* Aquí usamos los sites del contexto */}
                   {sites.map((sede) => (
-                    <option key={sede.id} value={sede.id}>
-                      {sede.nombre}
+                    <option key={sede._id} value={sede._id}>
+                      {sede.name_site}
                     </option>
                   ))}
                 </select>
