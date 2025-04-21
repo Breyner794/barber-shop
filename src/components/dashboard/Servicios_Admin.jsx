@@ -7,6 +7,8 @@ const ServicesAdminPanel = () => {
   const { services, loading, addService, removeService, editService } = useServices();
   const [editingService, setEditingService] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleEditService = (service) => {
     setEditingService({ ...service });
@@ -47,6 +49,45 @@ const ServicesAdminPanel = () => {
     }
   };
 
+  const validateFormService = () => {
+    
+    const requiredFields = [
+      { key: 'title', label: 'Título' },
+      { key: 'price', label: 'Precio' },
+      { key: 'duration', label: 'Duración' },
+      { key: 'icon', label: 'Ícono' }
+    ];
+
+    for (const field of requiredFields) {
+      if (!editingService[field.key]) {
+        return `El campo ${field.label} es obligatorio`;
+      }
+    }
+    
+    // Validar que el precio sea mayor que cero
+    if (editingService.price <= 0) {
+      return "El precio debe ser mayor que cero";
+    }
+    
+    // Validar que la duración sea mayor que cero
+    if (editingService.duration <= 0) {
+      return "La duración debe ser mayor que cero";
+    }
+    
+    // Validar que incluya al menos un servicio
+    if (!editingService.includes || editingService.includes.length === 0) {
+      return "Debe incluir al menos un detalle del servicio";
+    }
+    
+    // Validar que no haya detalles de servicio vacíos
+    if (editingService.includes.some(item => !item.trim())) {
+      return "No puede haber detalles de servicio vacíos";
+    }
+    
+    // Si pasa todas las validaciones, retornamos null
+    return null;
+  };
+
   const handleInputChange = (e, field) => {
     const { value } = e.target;
     setEditingService((prev) => ({
@@ -80,7 +121,19 @@ const ServicesAdminPanel = () => {
     }));
   };
 
-  const saveChanges = async () => {
+  const saveChanges = async (e) => {
+
+    e.preventDefault();
+
+    const validationError = validateFormService();
+    if(validationError) {
+      setSubmitError(validationError);
+      return;
+    }
+
+    setSubmitError(null);
+    setIsSubmitting(true); // Indicar que está enviando
+
     try {
       if (editingService._id) {
         // Actualizar servicio existente
@@ -109,9 +162,11 @@ const ServicesAdminPanel = () => {
         icon: "error",
         title: "Oops...",
         text: `¡Algo salió mal! ${error}`,
-        showConfirmButton: false,
-        timer: 2500,
+        confirmButtonColor: '#d33', // Color rojo para errores
+        confirmButtonText: 'OK'
       });
+    } finally{
+      setIsSubmitting(false); // Restaurar el estado
     }
   };
 
@@ -124,11 +179,11 @@ const ServicesAdminPanel = () => {
 
     const newService = {
       id: highestId + 1,
-      title: "Nuevo Servicio",
+      title: "",
       price: 0,
       duration: 0,
       includes: [""],
-      icon: "❓",
+      icon: "",
     };
 
     setEditingService(newService);
@@ -299,6 +354,24 @@ const ServicesAdminPanel = () => {
                   <PlusCircle className="mr-2" /> Agregar Detalle
                 </button>
               </div>
+              {/* Mensaje de error si hay */}
+              {submitError && (
+                <div className="bg-red-50 p-4 rounded-md mb-4">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <X className="h-5 w-5 text-red-400" />
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-red-800">
+                        Error al guardar la reserva
+                      </h3>
+                      <div className="mt-2 text-sm text-red-700">
+                        <p>{submitError}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end space-x-2 mt-4">
@@ -310,9 +383,16 @@ const ServicesAdminPanel = () => {
               </button>
               <button
                 onClick={saveChanges}
+                disabled={isSubmitting}
                 className="flex items-center bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
               >
-                <Save className="mr-2" /> Guardar
+                {isSubmitting ? (
+                  "Guardando..."
+                ) : (
+                  <>
+                    <Save className="mr-2" /> Guardar
+                  </>
+                )}
               </button>
             </div>
           </div>

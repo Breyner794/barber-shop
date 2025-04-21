@@ -88,7 +88,7 @@ const FormularioReserva = ({ initialData, onCancel, onSuccess }) => {
     // Validar formulario
     const validateForm = () => {
         // Verificar campos obligatorios
-        const requiredFields = ['name', 'phone', 'date', 'hour', 'service', 'site', 'barber'];
+        const requiredFields = ['name', 'phone','email', 'date', 'hour', 'service', 'site', 'barber'];
         for (const field of requiredFields) {
             if (!formData[field]) {
                 return `El campo ${field} es obligatorio`;
@@ -190,7 +190,6 @@ const FormularioReserva = ({ initialData, onCancel, onSuccess }) => {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -208,7 +207,6 @@ const FormularioReserva = ({ initialData, onCancel, onSuccess }) => {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
