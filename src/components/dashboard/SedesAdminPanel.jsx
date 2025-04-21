@@ -12,6 +12,7 @@ const SedesAdminPanel = () => {
     headquarter_time: "",
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
   const handleEditSede = (site) => {
     setEditingSede({ ...site });
@@ -46,10 +47,31 @@ const SedesAdminPanel = () => {
         title: "Error",
         text: `¡No se pudo eliminar la Sede! ${error}`,
         icon: "error",
-        confirmButtonColor: '#d33', // Color rojo para errores
-        confirmButtonText: 'OK'
+        confirmButtonColor: "#d33", // Color rojo para errores
+        confirmButtonText: "OK",
       });
     }
+  };
+
+  const validateFormSite = () => {
+    const requiredFields = [
+      { key: "name_site", label: "nombre de la sede" },
+      { key: "address_site", label: "direccion de la sede" },
+      { key: "phone_site", label: "telefono de la sede" },
+      { key: "headquarter_time", label: "horario de la sede" },
+    ];
+
+    for (const field of requiredFields) {
+      if (!editingSede[field.key]) {
+        return `El campo ${field.label} es obligatorio`;
+      }
+    }
+
+    const phoneRegex = /^\+?[0-9]{8,10}$/;
+    if (!phoneRegex.test(editingSede.phone_site)) {
+      return "El número de teléfono no es válido";
+    }
+    return null;
   };
 
   const handleInputChange = (e, field) => {
@@ -60,11 +82,21 @@ const SedesAdminPanel = () => {
     }));
   };
 
-  const saveChanges = async () => {
+  const saveChanges = async (e) => {
+    // e.preventDefault(); // prueba de recarga, no funciona por la razon que no uso type="submit" entonces no hay necesidad de hacerlo.
+    // console.log("preventDefault() ejecutado - Envío del formulario detenido");
+
+    const validateErrorSite = validateFormSite();
+    if (validateErrorSite) {
+      setSubmitError(validateErrorSite);
+      return;
+    }
+
+    setSubmitError(null);
+
     try {
       if (editingSede._id) {
         await editSede(editingSede._id, editingSede);
-        setIsModalOpen(false);
         await Swal.fire({
           icon: "success",
           title: "Sede Actualizada Exitosamente",
@@ -73,7 +105,6 @@ const SedesAdminPanel = () => {
         });
       } else {
         await addSede(editingSede);
-        setIsModalOpen(false);
         await Swal.fire({
           icon: "success",
           title: "Sede Creada Exitosamente",
@@ -81,14 +112,15 @@ const SedesAdminPanel = () => {
           timer: 1500,
         });
       }
+      setIsModalOpen(false);
     } catch (error) {
       console.error("Error guardando sede:", error);
       Swal.fire({
         icon: "error",
         title: "Oops...",
         text: `¡Algo salió mal! ${error}`,
-        confirmButtonColor: '#d33', // Color rojo para errores
-        confirmButtonText: 'OK'
+        confirmButtonColor: "#d33", // Color rojo para errores
+        confirmButtonText: "OK",
       });
     }
   };
@@ -229,6 +261,24 @@ const SedesAdminPanel = () => {
                   placeholder="Ej: 9 am a 10 pm"
                 />
               </div>
+              {/* Mensaje de error si hay */}
+              {submitError && (
+                <div className="bg-red-50 p-4 rounded-md mb-4">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <X className="h-5 w-5 text-red-400" />
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-red-800">
+                        Error al guardar la sede
+                      </h3>
+                      <div className="mt-2 text-sm text-red-700">
+                        <p>{submitError}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end space-x-2 mt-4">

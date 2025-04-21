@@ -5,19 +5,19 @@ import { useSede } from "../../context/SedeContext";
 import Swal from "sweetalert2";
 
 const BarberosAdminPanel = () => {
-  
-  const { 
-    barber, 
-    loading, 
-    error, 
-    addBarber, 
-    editBarber, 
-    removeBarber, 
+  const {
+    barber,
+    loading,
+    error,
+    addBarber,
+    editBarber,
+    removeBarber,
     getSiteById,
   } = useBarbers();
-  const {sites} = useSede();
+  const { sites } = useSede();
   const [editingBarbero, setEditingBarbero] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
   const handleEditBarbero = (barbero) => {
     setEditingBarbero({ ...barbero });
@@ -45,17 +45,34 @@ const BarberosAdminPanel = () => {
           showConfirmButton: false,
           timer: 1500,
         });
-      };
+      }
     } catch (error) {
       console.error("Error deleting barber:", error);
       Swal.fire({
         title: "Error",
         text: `¡No se pudo eliminar el barbero! ${error}`,
         icon: "error",
-        confirmButtonColor: '#d33', // Color rojo para errores
-        confirmButtonText: 'OK'
+        confirmButtonColor: "#d33", // Color rojo para errores
+        confirmButtonText: "OK",
       });
     }
+  };
+
+  const validateFormBarber = () => {
+    const requiredFields = [
+      { key: "id", label: "Cedula" },
+      { key: "nombre", label: "Nombre" },
+      { key: "apellido", label: "Apellido" },
+      { key: "sede", label: "Sede" },
+    ];
+
+    for (const field of requiredFields) {
+      if (!editingBarbero[field.key]) {
+        return `El campo ${field.label} es obligatorio`;
+      }
+    }
+    // Si pasa todas las validaciones, retornamos null
+    return null;
   };
 
   const handleInputChange = (e, field) => {
@@ -75,6 +92,14 @@ const BarberosAdminPanel = () => {
   };
 
   const saveChanges = async () => {
+    const validationErrorBarber = validateFormBarber();
+    if (validationErrorBarber) {
+      setSubmitError(validationErrorBarber);
+      return;
+    }
+
+    setSubmitError(null);
+
     try {
       if (editingBarbero._id) {
         // Actualizar barbero existente
@@ -102,8 +127,8 @@ const BarberosAdminPanel = () => {
         icon: "error",
         title: "Oops...",
         text: `¡Algo salió mal! ${error}`,
-        confirmButtonColor: '#d33', // Color rojo para errores
-        confirmButtonText: 'OK'
+        confirmButtonColor: "#d33", // Color rojo para errores
+        confirmButtonText: "OK",
       });
     }
   };
@@ -121,7 +146,11 @@ const BarberosAdminPanel = () => {
   };
 
   if (loading && barber.length === 0) {
-    return <div className="flex-1 flex items-center justify-center">Cargando barberos...</div>;
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        Cargando barberos...
+      </div>
+    );
   }
 
   // if (error && barber.length === 0) {
@@ -282,6 +311,24 @@ const BarberosAdminPanel = () => {
                   )}
                 </div>
               </div>
+              {/* Mensaje de error si hay */}
+              {submitError && (
+                <div className="bg-red-50 p-4 rounded-md mb-4">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <X className="h-5 w-5 text-red-400" />
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-red-800">
+                        Error al guardar el barbero
+                      </h3>
+                      <div className="mt-2 text-sm text-red-700">
+                        <p>{submitError}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end space-x-2 mt-4">
