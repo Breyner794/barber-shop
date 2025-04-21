@@ -97,7 +97,7 @@ const BarberosAdminPanel = () => {
       }
       setIsModalOpen(false);
     } catch (error) {
-      console.error("Error deleting barber:", error);
+      console.error("Error saving barber:", error);
       Swal.fire({
         icon: "error",
         title: "Oops...",
