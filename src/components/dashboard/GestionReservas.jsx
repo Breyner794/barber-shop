@@ -1,249 +1,401 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Check, Edit, Trash, X as XIcon, ChevronDown, ChevronUp, Plus } from 'lucide-react';
-import FormularioReserva from './FormularioReserva';
-
-import { getAllReservas , eliminarReservas, updateReservas } from '../../services/reservaClient'
-
-
-
-
-
-
+import React, { useState } from "react";
+import { Check, Edit, Trash, X as XIcon, Plus, X, Save } from "lucide-react";
+import Swal from "sweetalert2";
+import { useReservations } from "../../context/ReservaContext";
+import { useServices } from "../../context/ServicesContext";
+import { useBarbers } from "../../context/BarberContext";
+import { useSede } from "../../context/SedeContext";
 
 const GestionReservas = () => {
-  
-  const [searchQuery, setSearchQuery] = useState('');
-  const [expandedCard, setExpandedCard] = useState(null);
-  const [isMobile, setIsMobile] = useState(false);
-  const [showForm, setShowForm] = useState(false);
+  const {
+    reservations,
+    loading,
+    removeReservation,
+    updateReservations,
+    updateReservationsState,
+    addReservation,
+    autoRefresh,
+    toggleAutoRefresh,
+    refreshing,
+  } = useReservations();
   const [currentReservation, setCurrentReservation] = useState(null);
-  
-  const [reservations, setReservations] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [editingReservation, setEditingReservation] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const { services } = useServices();
+  const { barber } = useBarbers();
+  const { sites } = useSede();
 
-  
+  const handleInputChange = (e, field) => {
+    const { value } = e.target;
+    setEditingReservation((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
-  // Detectar si es dispositivo móvil
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkIfMobile();
-    window.addEventListener('resize', checkIfMobile);
-    
-    return () => {
-      window.removeEventListener('resize', checkIfMobile);
-    };
-  }, []);
+  const validateForm = () => {
+    const requiredFields = [
+      { key: "name", label: "Nombre completo" },
+      { key: "phone", label: "Teléfono" },
+      { key: "service", label: "Servicio" },
+      { key: "site", label: "Sede" },
+      { key: "date", label: "Fecha" },
+      { key: "hour", label: "Hora" },
+    ];
 
-  
-
-    
-
-    
-  // efecto para cargar los datos que se encuentra registrados en la base de datos 
-  useEffect(() => {
-    
-    async function loadReservations() {
-      try {
-        setLoading(true);
-        const response = await getAllReservas();
-        
-        // infromacion que se mostrara en la consola del navegador, la cual dara a entender si los datos fueron llamandos desde el back
-        console.log("Respuesta completa de la API:", response);
-        
-        let data = [];
-        
-        if (Array.isArray(response)) {
-          data = response;
-        } else if (response?.data && Array.isArray(response.data)) {
-          data = response.data;
-        } else if (response?.data?.data && Array.isArray(response.data.data)) {
-          data = response.data.data;
-        } else {
-          throw new Error("Formato de respuesta no reconocido");
-        }
-
-        // Mapear los datos de la API a la estructura esperada por el componente
-        const mappedData = data.map(item => ({
-          id: item._id,
-          nombre: item.name,
-          servicio: item.service,
-          fecha: item.date,
-          hora: item.hour,
-          estado: item.state,
-          telefono: item.phone,
-          email: item.email,
-          notas: item.notes,
-          barbero: item.barber || { name_barber: "Sin asignar" } // Asegura que siempre haya un objeto
-        }));
-
-        console.log("Datos mapeados:", mappedData);
-        setReservations(mappedData);
-        setError(null);
-      } catch (err) {
-        console.error("Error cargando reservas:", err);
-        setError(err.message || "Error al cargar las reservas");
-        setReservations([]);
-      } finally {
-        setLoading(false);
+    for (const field of requiredFields) {
+      if (!editingReservation[field.key]) {
+        return `El campo ${field.label} es obligatorio`;
       }
+    }
+    return null;
+  };
 
-
-    
-
-
-
-
+  const saveChanges = async () => {
+    const validationError = validateForm();
+    if (validationError) {
+      setSubmitError(validationError);
+      return;
     }
 
-    loadReservations();
-  }, []);
+    setSubmitError(null);
 
+    try {
+      if (editingReservation._id) {
+        // Actualizar reserva existente
+        await updateReservations(editingReservation._id, editingReservation);
+        await Swal.fire({
+          icon: "success",
+          title: "Reserva Actualizada Exitosamente",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+      } else {
+        await addReservation(editingReservation);
+        await Swal.fire({
+          icon: "success",
+          title: "Reserva Creada Exitosamente",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Error saving reservation:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: `¡Algo salió mal! ${error}`,
+        confirmButtonColor: "#d33",
+        confirmButtonText: "OK",
+      });
+    }
+  };
 
+  // Modificar tus funciones de edición/creación
+  const handleEditReservation = (id) => {
+    const reservationToEdit = reservations.find((res) => res._id === id);
+    setEditingReservation({ ...reservationToEdit });
+    setIsModalOpen(true);
+  };
 
+  const handleNewReservation = () => {
+    const newReservation = {
+      name: "",
+      phone: "",
+      email: "",
+      service: "",
+      site: "",
+      barber: "",
+      date: "",
+      hour: "",
+      state: "pendiente",
+      notes: "",
+    };
+    setEditingReservation(newReservation);
+    setIsModalOpen(true);
+  };
 
+  const updateReservationStatus = async (id, newStatus) => {
+    try {
+      // Asumiendo que updateResevation toma ID y un objeto de datos
+      await updateReservationsState(id, { state: newStatus });
 
-  
-
-  // Datos de ejemplo para las reservas
-
-  // Filtrar reservas según la búsqueda
-  const filteredReservations = reservations.filter(reservation => 
-    reservation.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    reservation.servicio.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    reservation.fecha.includes(searchQuery) ||
-    reservation.estado.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  // Función para actualizar el estado de una reserva
-  const updateReservationStatus = (id, newStatus) => {
-    setReservations(
-      reservations.map(reservation => 
-        reservation.id === id ? { ...reservation, estado: newStatus } : reservation
-      )
-    );
+      // Podrías querer mostrar un feedback de éxito al usuario
+      Swal.fire({
+        title: "¡Actualizado!",
+        text: "El estado de la reserva ha sido actualizado.",
+        icon: "success",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    } catch (error) {
+      console.error("Error al actualizar estado:", error);
+      Swal.fire({
+        title: "Error",
+        text: "No se pudo actualizar el estado de la reserva.",
+        icon: "error",
+        confirmButtonColor: "#d33", // Color rojo para errores
+        confirmButtonText: "OK",
+      });
+    }
   };
 
   // Función para eliminar una reserva
-  const deleteReservation = async (id) => {
+  const deleteReservations = async (id) => {
     try {
-      // Llamar a la API para eliminar en el backend
-      await eliminarReservas(id);
-      
-      // Actualizar el estado local si la eliminación fue exitosa
-      setReservations(reservations.filter(reservation => reservation.id !== id));
-      setExpandedCard(null);
+      const result = await Swal.fire({
+        title: "¿Estás seguro?",
+        text: "¡No podrás revertir esto!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "¡Sí, elimínalo!",
+      });
+      if (result.isConfirmed) {
+        await removeReservation(id);
+        Swal.fire({
+          title: "¡Eliminado!",
+          text: "La Reserva ha sido eliminado.",
+          icon: "success",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+      }
     } catch (error) {
       console.error("Error al eliminar la reserva:", error);
       // Puedes mostrar un mensaje de error al usuario aquí
     }
   };
-  
 
   // Obtener el color de fondo según el estado
-  const getStatusColor = (estado) => {
-    switch(estado) {
-      case 'pendiente': return 'bg-yellow-100 text-yellow-800';
-      case 'confirmada': return 'bg-blue-100 text-blue-800';
-      case 'completada': return 'bg-green-100 text-green-800';
-      case 'cancelada': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const getStatusColor = (state) => {
+    switch (state) {
+      case "pendiente":
+        return "bg-yellow-100 text-yellow-800";
+      case "confirmada":
+        return "bg-blue-100 text-blue-800";
+      case "completada":
+        return "bg-green-100 text-green-800";
+      case "cancelada":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
-  // Alternar la expansión de una tarjeta
-  const toggleCardExpansion = (id) => {
-    if (expandedCard === id) {
-      setExpandedCard(null);
-    } else {
-      setExpandedCard(id);
-    }
-  };
-
-  // Abrir formulario para nueva reserva
-  const handleNewReservation = () => {
-    setCurrentReservation(null); // No reservation data for a new one
-    setShowForm(true);
-  };
-
-  const handleEditReservation = (id) => {
-    const reservationToEdit = reservations.find(res => res.id === id);
-    setCurrentReservation(reservationToEdit);
-    setShowForm(true);
-  };
-
-  const handleFormSubmit = (formData) => {
-    if (currentReservation) {
-      // Actualizar reserva existente
-      setReservations(
-        reservations.map(reservation => 
-          reservation.id === currentReservation.id ? { ...formData, id: currentReservation.id } : reservation
-        )
-      );
-    } else {
-      // Crear nueva reserva con ID único
-      const newId = Math.max(...reservations.map(res => res.id)) + 1;
-      setReservations([...reservations, { ...formData, id: newId }]);
-    }
-    
-    // Cerrar formulario
-    setShowForm(false);
-    setCurrentReservation(null);
-  };
-
-  const handleCloseForm = () => {
-    setShowForm(false);
-    setCurrentReservation(null);
-  };
+  if (loading && reservations.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        Cargando Reservas...
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-auto">
-      {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-3xl max-h-[90vh] overflow-auto">
-            <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-lg font-medium text-gray-800">
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-auto">
+            <div className="flex justify-between items-center p-4">
+              <h2 className="text-2xl font-bold">
                 {currentReservation ? "Editar Reserva" : "Nueva Reserva"}
-              </h3>
+              </h2>
               <button
-                onClick={handleCloseForm}
-                className="text-gray-500 hover:text-gray-700"
+                onClick={() => setIsModalOpen(false)}
+                className="text-red-500 hover:text-red-700"
               >
-                <XIcon size={20} />
+                <X />
               </button>
             </div>
 
-            <div className="p-4">
-              <FormularioReserva
-                initialData={currentReservation}
-                onSubmit={handleFormSubmit}
-                onCancel={handleCloseForm}
-              />
+            <div className="space-y-4">
+              <div>
+                <label className="block mb-2">Nombre Completo *</label>
+                <input
+                  className="w-full border rounded p-2"
+                  value={editingReservation?.name || ""}
+                  onChange={(e) => handleInputChange(e, "name")}
+                  placeholder="Nombre del cliente"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-2">Teléfono *</label>
+                <input
+                  className="w-full border rounded p-2"
+                  value={editingReservation?.phone || ""}
+                  onChange={(e) => handleInputChange(e, "phone")}
+                  placeholder="Número de teléfono"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-2">Correo Electrónico</label>
+                <input
+                  className="w-full border rounded p-2"
+                  value={editingReservation?.email || ""}
+                  onChange={(e) => handleInputChange(e, "email")}
+                  placeholder="Email del cliente"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-2">Servicio *</label>
+                <select
+                  className="w-full border rounded p-2"
+                  value={editingReservation?.service || ""}
+                  onChange={(e) => handleInputChange(e, "service")}
+                >
+                  <option value="">Selecciona un servicio</option>
+                  {services.map((service) => (
+                    <option key={service._id} value={service._id}>
+                      {service.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block mb-2">Sede *</label>
+                <select
+                  className="w-full border rounded p-2"
+                  value={editingReservation?.site || ""}
+                  onChange={(e) => handleInputChange(e, "site")}
+                >
+                  <option value="">Selecciona una sede</option>
+                  {sites.map((site) => (
+                    <option key={site._id} value={site._id}>
+                      {site.name_site}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block mb-2">Barbero</label>
+                <select
+                  className="w-full border rounded p-2"
+                  value={editingReservation?.barber || ""}
+                  onChange={(e) => handleInputChange(e, "barber")}
+                >
+                  <option value="">Selecciona un barbero</option>
+                  {barber.map((barber) => (
+                    <option key={barber._id} value={barber._id}>
+                      {barber.nombre} {barber.apellido}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block mb-2">Fecha *</label>
+                <input
+                  type="date"
+                  className="w-full border rounded p-2"
+                  value={editingReservation?.date || ""}
+                  onChange={(e) => handleInputChange(e, "date")}
+                />
+              </div>
+
+              <div>
+                <label className="block mb-2">Hora *</label>
+                <input
+                  type="time"
+                  className="w-full border rounded p-2"
+                  value={editingReservation?.hour || ""}
+                  onChange={(e) => handleInputChange(e, "hour")}
+                />
+              </div>
+
+              <div>
+                <label className="block mb-2">Estado</label>
+                <select
+                  className="w-full border rounded p-2"
+                  value={editingReservation?.state || "pendiente"}
+                  onChange={(e) => handleInputChange(e, "state")}
+                >
+                  <option value="pendiente">Pendiente</option>
+                  <option value="confirmada">Confirmada</option>
+                  <option value="completada">Completada</option>
+                  <option value="cancelada">Cancelada</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block mb-2">Notas</label>
+                <textarea
+                  className="w-full border rounded p-2"
+                  value={editingReservation?.notes || ""}
+                  onChange={(e) => handleInputChange(e, "notes")}
+                  placeholder="Notas adicionales"
+                  rows="3"
+                ></textarea>
+              </div>
+
+              {submitError && (
+                <div className="bg-red-50 p-4 rounded-md mb-4">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <X className="h-5 w-5 text-red-400" />
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-red-800">
+                        Error al guardar la reserva
+                      </h3>
+                      <div className="mt-2 text-sm text-red-700">
+                        <p>{submitError}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end space-x-2 mt-4">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="flex items-center bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition"
+              >
+                <X className="mr-2" /> Cancelar
+              </button>
+              <button
+                onClick={saveChanges}
+                className="flex items-center bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
+              >
+                <Save className="mr-2" /> Guardar
+              </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* MODIFICADO: Actualizado el header para incluir indicador de auto-refresco */}
       <header className="sticky top-0 z-30 flex items-center justify-between h-16 pr-4 pl-20 bg-white shadow-md">
         <h2 className="text-xl font-semibold text-gray-800">
           Gestión de Reservas
+          {refreshing && (
+            <span className="ml-2 text-xs font-normal text-blue-500">
+              Actualizando...
+            </span>
+          )}
         </h2>
         <div className="flex items-center space-x-3">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Search size={18} className="text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Buscar reservas..."
-              className="py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+          {/* NUEVO: Botón para controlar auto-refresco */}
+          <button
+            onClick={toggleAutoRefresh}
+            className={`text-xs px-2 py-1 rounded ${
+              autoRefresh
+                ? "bg-green-100 text-green-700"
+                : "bg-gray-100 text-gray-700"
+            }`}
+          >
+            {autoRefresh
+              ? "Auto-refresco: Activado"
+              : "Auto-refresco: Desactivado"}
+          </button>
           <button
             onClick={handleNewReservation}
             className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -260,319 +412,332 @@ const GestionReservas = () => {
             Reservas Actuales
           </h3>
 
-          {/* Vista de tabla para escritorio*/}
+          {/* Vista de tabla para escritorio */}
           <div className="hidden lg:block overflow-x-auto bg-white rounded-lg shadow">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
+                    className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
                   >
-                    nombree
+                    Cliente
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
+                    className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
+                  >
+                    Contacto
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
                   >
                     Servicio
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
-                  >
-                    Fecha y Hora
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
-                  >
-                    Estado
-                  </th>
-
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
+                    className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
                   >
                     Barbero
                   </th>
-                  
                   <th
                     scope="col"
-                    className="px-6 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase"
+                    className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
+                  >
+                    Fecha/Hora
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-4 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase"
+                  >
+                    Estado
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-4 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase"
                   >
                     Acciones
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredReservations.map((reservation) => (
-                  <tr key={reservation.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">
-                        {reservation.nombre}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-gray-500">
-                      {reservation.servicio?.title || 'Servicio no especificado'}
-                      </div>
-                    </td>
-
-          
-
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-gray-500">
-                        {reservation.fecha}, {reservation.hora}
-                      </div>
-                    </td>
-                    
-                  
-
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                          reservation.estado
-                        )}`}
-                      >
-                        {reservation.estado.charAt(0).toUpperCase() +
-                          reservation.estado.slice(1)}
-                      </span>
-                    </td>
-
-                    
-                    <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-500">
-                          {reservation.barbero?.name_barber || "Sin asignar"}
-                        </div>
-                      </td>
-
-                    <td className="px-6 py-4 text-sm text-center whitespace-nowrap">
-                      <div className="flex justify-center space-x-2">
-                        {reservation.estado !== "confirmada" && (
-                          <button
-                            onClick={() =>
-                              updateReservationStatus(
-                                reservation.id,
-                                "confirmada"
-                              )
-                            }
-                            className="p-1 text-blue-600 bg-blue-100 rounded-full hover:bg-blue-200"
-                            title="Confirmar"
-                          >
-                            <Check size={16} />
-                          </button>
-                        )}
-
-                        {reservation.estado !== "completada" && (
-                          <button
-                            onClick={() =>
-                              updateReservationStatus(
-                                reservation.id,
-                                "completada"
-                              )
-                            }
-                            className="p-1 text-green-600 bg-green-100 rounded-full hover:bg-green-200"
-                            title="Completar"
-                          >
-                            <Check size={16} />
-                          </button>
-                        )}
-
-                        {reservation.estado !== "cancelada" && (
-                          <button
-                            onClick={() =>
-                              updateReservationStatus(
-                                reservation.id,
-                                "cancelada"
-                              )
-                            }
-                            className="p-1 text-red-600 bg-red-100 rounded-full hover:bg-red-200"
-                            title="Cancelar"
-                          >
-                            <XIcon size={16} />
-                          </button>
-                        )}
-
-                        <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditReservation(reservation.id);
-                        }}
-                          className="p-1 text-indigo-600 bg-indigo-100 rounded-full hover:bg-indigo-200"
-                          title="Editar"
-                        >
-                          <Edit size={16} />
-                        </button>
-
-                  
-                        <button
-                          onClick={() => deleteReservation(reservation.id)}
-                          className="p-1 text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200"
-                          title="Eliminar">
-                          <Trash size={16} />
-                        </button>
-                      </div>
+                {reservations.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan="7"
+                      className="px-6 py-4 text-center text-gray-500"
+                    >
+                      No se encontraron reservas.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  reservations.map((reservation) => (
+                    <tr
+                      key={reservation._id}
+                      className={`hover:bg-gray-50 ${
+                        reservation.state === "cancelada"
+                          ? "bg-red-50"
+                          : reservation.state === "completada"
+                          ? "bg-green-50"
+                          : reservation.state === "confirmada"
+                          ? "bg-blue-50"
+                          : ""
+                      }`}
+                    >
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-gray-900">
+                          {reservation.name}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-sm text-gray-500">
+                          {reservation.phone}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {reservation.email || "-"}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-sm text-gray-500">
+                          {reservation.service?.title || "No especificado"}
+                          {reservation.service?.price && (
+                            <span className="ml-1 text-xs font-semibold">
+                              ${reservation.service.price}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center">
+                          {reservation.barber?.imageUrl && (
+                            <img
+                              src={reservation.barber.imageUrl}
+                              alt=""
+                              className="w-6 h-6 rounded-full mr-2"
+                            />
+                          )}
+                          <span className="text-sm text-gray-500">
+                            {reservation.barber?.name_barber
+                              ? `${reservation.barber.name_barber} ${reservation.barber.last_name_barber}`
+                              : "Sin asignar"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-sm font-medium text-gray-900">
+                          {reservation.date}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {reservation.hour}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                            reservation.state
+                          )}`}
+                        >
+                          {reservation.state}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex justify-center space-x-1">
+                          {reservation.state !== "completada" &&
+                            reservation.state !== "cancelada" && (
+                              <div className="flex space-x-1">
+                                <button
+                                  onClick={() =>
+                                    updateReservationStatus(
+                                      reservation._id,
+                                      "confirmada"
+                                    )
+                                  }
+                                  className="p-1 text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200"
+                                  title="Confirmar"
+                                >
+                                  <Check size={16} />
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    updateReservationStatus(
+                                      reservation._id,
+                                      "completada"
+                                    )
+                                  }
+                                  className="p-1 text-green-600 bg-green-100 rounded-md hover:bg-green-200"
+                                  title="Completar"
+                                >
+                                  <Check size={16} />
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    updateReservationStatus(
+                                      reservation._id,
+                                      "cancelada"
+                                    )
+                                  }
+                                  className="p-1 text-red-600 bg-red-100 rounded-md hover:bg-red-200"
+                                  title="Cancelar"
+                                >
+                                  <XIcon size={16} />
+                                </button>
+                              </div>
+                            )}
+                          <button
+                            onClick={() =>
+                              handleEditReservation(reservation._id)
+                            }
+                            className="p-1 text-indigo-600 bg-indigo-100 rounded-md hover:bg-indigo-200"
+                            title="Editar"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => deleteReservations(reservation._id)}
+                            className="p-1 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200"
+                            title="Eliminar"
+                          >
+                            <Trash size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
-
-            {filteredReservations.length === 0 && (
-              <div className="p-6 text-center text-gray-500">
-                No se encontraron reservas que coincidan con la búsqueda.
-              </div>
-            )}
           </div>
 
           {/* Vista de tarjetas para móviles */}
           <div className="lg:hidden space-y-3">
-            {filteredReservations.length === 0 ? (
+            {reservations.length === 0 ? (
               <div className="p-6 text-center text-gray-500 bg-white rounded-lg shadow">
-                No se encontraron reservas que coincidan con la búsqueda.
+                No se encontraron reservas.
               </div>
             ) : (
-              filteredReservations.map((reservation) => (
+              reservations.map((reservation) => (
                 <div
-                  key={reservation.id}
-                  className="bg-white rounded-lg shadow overflow-hidden"
+                  key={reservation._id}
+                  className={`bg-white rounded-lg shadow overflow-hidden border-l-4 ${
+                    reservation.state === "cancelada"
+                      ? "border-red-500"
+                      : reservation.state === "completada"
+                      ? "border-green-500"
+                      : reservation.state === "confirmada"
+                      ? "border-blue-500"
+                      : "border-yellow-500"
+                  }`}
                 >
-                  <div
-                    className="p-4 flex items-center justify-between cursor-pointer"
-                    onClick={() => toggleCardExpansion(reservation.id)}
-                  >
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">
-                        {reservation.nombre}
+                  <div className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h3 className="font-bold text-gray-900">
+                          {reservation.name}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {reservation.phone}
+                        </p>
                       </div>
-                      
-                      <div className="font-medium text-gray-900">
-                        {reservation.servicio?.title}
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                          reservation.state
+                        )}`}
+                      >
+                        {reservation.state}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      <div>
+                        <p className="text-xs text-gray-500">Servicio</p>
+                        <p className="text-sm font-medium">
+                          {reservation.service?.title || "No especificado"}
+                        </p>
                       </div>
-
-                      <div className="text-sm text-gray-500">
-                        {reservation.fecha}, {reservation.hora}
+                      <div>
+                        <p className="text-xs text-gray-500">Barbero</p>
+                        <p className="text-sm font-medium">
+                          {reservation.barber?.name_barber
+                            ? `${reservation.barber.name_barber} ${reservation.barber.last_name_barber}`
+                            : "Sin asignar"}
+                        </p>
                       </div>
-
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-500">
-                          {reservation.barbero?.name_barber || "Sin asignar"}
-                        </div>
-                      </td>
-                    
-
-                    
-                      <div className="mt-1">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                            reservation.estado
-                          )}`}
-                        >
-                          {reservation.estado.charAt(0).toUpperCase() +
-                            reservation.estado.slice(1)}
-                        </span>
+                      <div>
+                        <p className="text-xs text-gray-500">Fecha</p>
+                        <p className="text-sm font-medium">
+                          {reservation.date}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Hora</p>
+                        <p className="text-sm font-medium">
+                          {reservation.hour}
+                        </p>
                       </div>
                     </div>
-                    <div>
-                      {expandedCard === reservation.id ? (
-                        <ChevronUp size={20} className="text-gray-500" />
-                      ) : (
-                        <ChevronDown size={20} className="text-gray-500" />
-                      )}
+
+                    {/* Notas (opcional - se muestra si hay notas) */}
+                    {reservation.notes && (
+                      <div className="mb-3 bg-gray-50 p-2 rounded">
+                        <p className="text-xs text-gray-500">Notas</p>
+                        <p className="text-sm">{reservation.notes}</p>
+                      </div>
+                    )}
+
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {reservation.state !== "completada" &&
+                        reservation.state !== "cancelada" && (
+                          <>
+                            <button
+                              onClick={() =>
+                                updateReservationStatus(
+                                  reservation._id,
+                                  "confirmada"
+                                )
+                              }
+                              className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs hover:bg-blue-200"
+                            >
+                              <Check size={12} className="mr-1" /> Confirmar
+                            </button>
+                            <button
+                              onClick={() =>
+                                updateReservationStatus(
+                                  reservation._id,
+                                  "completada"
+                                )
+                              }
+                              className="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 rounded text-xs hover:bg-green-200"
+                            >
+                              <Check size={12} className="mr-1" /> Completar
+                            </button>
+                            <button
+                              onClick={() =>
+                                updateReservationStatus(
+                                  reservation._id,
+                                  "cancelada"
+                                )
+                              }
+                              className="inline-flex items-center px-2 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200"
+                            >
+                              <XIcon size={12} className="mr-1" /> Cancelar
+                            </button>
+                          </>
+                        )}
+                      <button
+                        onClick={() => handleEditReservation(reservation._id)}
+                        className="inline-flex items-center px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs hover:bg-indigo-200"
+                      >
+                        <Edit size={12} className="mr-1" /> Editar
+                      </button>
+                      <button
+                        onClick={() => deleteReservations(reservation._id)}
+                        className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200"
+                      >
+                        <Trash size={12} className="mr-1" /> Eliminar
+                      </button>
                     </div>
                   </div>
-
-                  {expandedCard === reservation.id && (
-                    <div className="px-4 pb-4 pt-2 border-t border-gray-200">
-                      <div className="grid grid-cols-2 gap-2 mb-4">
-                        <div>
-                          <div className="text-xs text-gray-500">Servicio</div>
-                          <div className="text-sm font-medium">
-                            {reservation.servicio}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-gray-500">Teléfono</div>
-                          <div className="text-sm font-medium">
-                            {reservation.telefono}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mb-4">
-                        <div className="text-xs text-gray-500">Notas</div>
-                        <div className="text-sm">{reservation.notas}</div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2 justify-center">
-                        {reservation.estado !== "confirmada" && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              updateReservationStatus(
-                                reservation.id,
-                                "confirmada"
-                              );
-                            }}
-                            className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200"
-                          >
-                            <Check size={14} className="mr-1" /> Confirmar
-                          </button>
-                        )}
-
-                        {reservation.estado !== "completada" && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              updateReservationStatus(
-                                reservation.id,
-                                "completada"
-                              );
-                            }}
-                            className="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm hover:bg-green-200"
-                          >
-                            <Check size={14} className="mr-1" /> Completar
-                          </button>
-                        )}
-
-                        {reservation.estado !== "cancelada" && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              updateReservationStatus(
-                                reservation.id,
-                                "cancelada"
-                              );
-                            }}
-                            className="inline-flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm hover:bg-red-200"
-                          >
-                            <XIcon size={14} className="mr-1" /> Cancelar
-                          </button>
-                        )}
-
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditReservation(reservation.id);
-                          }}
-                          className="inline-flex items-center px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm hover:bg-indigo-200"
-                        >
-                          <Edit size={14} className="mr-1" /> Editar
-                        </button>
-
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteReservation(reservation.id);
-                          }}
-                          className="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200"
-                        >
-                          <Trash size={14} className="mr-1" /> Eliminar
-                        </button>
-                      </div>
-                    </div>
-                  )}
                 </div>
               ))
             )}

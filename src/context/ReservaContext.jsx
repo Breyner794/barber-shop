@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { 
-  getAllReservation, 
-  createResevation, 
-  updateResevation, 
-  deleteReservation 
-} from '../services/reserva.Client';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import {
+  getAllReservation,
+  createResevation,
+  updateReservation,
+  updateReservationState,
+  deleteReservation,
+} from "../services/reserva.Client";
 
 // Create the context
 const ReservationContext = createContext();
@@ -13,7 +14,9 @@ const ReservationContext = createContext();
 export const useReservations = () => {
   const context = useContext(ReservationContext);
   if (!context) {
-    throw new Error('useReservations must be used within a ReservationProvider');
+    throw new Error(
+      "useReservations must be used within a ReservationProvider"
+    );
   }
   return context;
 };
@@ -23,48 +26,66 @@ export const ReservationProvider = ({ children }) => {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [autoRefresh, setAutoRefresh] = useState(true); // Estado para controlar si el refresco automático está activo
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Fetch all reservations on component mount
   useEffect(() => {
     fetchReservations();
-  }, []);
+    // Configurar el intervalo de refresco automático (2 minutos = 120000 ms)
+    const refreshInterval = setInterval(() => {
+      if (autoRefresh) {
+        console.log("Refrescando datos automáticamente...");
+        fetchReservations();
+      }
+    }, 120000);
+
+    // Limpiar el intervalo cuando el componente se desmonte
+    return () => clearInterval(refreshInterval);
+  }, [autoRefresh]);
 
   // Get all reservations
   const fetchReservations = async () => {
-    setLoading(true);
+    setRefreshing(true);
     try {
-      const data = await getAllReservation();
-      setReservations(data.data || []);
+      const response = await getAllReservation();
+      const reservationData = response.data ? response.data : response;
+      setReservations(reservationData);
       setError(null);
     } catch (err) {
-      setError('Error al cargar las reservas');
+      setError("Error al cargar las reservas");
       console.error(err);
     } finally {
       setLoading(false);
+      setTimeout(() => setRefreshing(false), 1500);
     }
+  };
+
+  // Toggle auto refresh
+  const toggleAutoRefresh = () => {
+    setAutoRefresh((prev) => !prev);
   };
 
   // Create a new reservation
   const addReservation = async (reservationData) => {
     try {
-      const newReservation = await createResevation(reservationData);
-      setReservations([...reservations, newReservation]);
-      return newReservation;
+      setLoading(true);
+      await createResevation(reservationData);
+      await fetchReservations();
+      return true;
     } catch (err) {
-      setError('Error al crear la reserva');
+      setError("Error al crear la reserva");
       console.error(err);
       throw err;
     }
   };
 
   // Update an existing reservation
-  const updateReservation = async (id, reservationData) => {
+  const updateReservations = async (id, reservationData) => {
     try {
-      const updatedReservation = await updateResevation(id, reservationData);
-      setReservations(reservations.map(reservation => 
-        reservation._id === id ? updatedReservation : reservation
-      ));
-      return updatedReservation;
+      setLoading(true);
+      await updateReservation(id, reservationData);
+      await fetchReservations();
+      return true;
     } catch (err) {
       setError(`Error al actualizar la reserva con ID ${id}`);
       console.error(err);
@@ -72,11 +93,28 @@ export const ReservationProvider = ({ children }) => {
     }
   };
 
+  const updateReservationsState = async (id, newState) => {
+    // Recibe el nuevo estado
+    try {
+      setLoading(true);
+      await updateReservationState(id, newState); // Pasa el nuevo estado al cliente
+      await fetchReservations(); // Recarga las reservas para actualizar la UI
+      return true;
+    } catch (error) {
+      setError(`Error al actualizar el estado de la reserva con ID ${id}`);
+      console.error(error);
+      setLoading(false);
+      throw error;
+    }
+  };
+
   // Delete a reservation
   const removeReservation = async (id) => {
     try {
       await deleteReservation(id);
-      setReservations(reservations.filter(reservation => reservation._id !== id));
+      setReservations(
+        reservations.filter((reservation) => reservation._id !== id)
+      );
       return true;
     } catch (err) {
       setError(`Error al eliminar la reserva con ID ${id}`);
@@ -87,7 +125,7 @@ export const ReservationProvider = ({ children }) => {
 
   // Get reservation by ID
   const getReservationById = (id) => {
-    return reservations.find(reservation => reservation._id === id) || null;
+    return reservations.find((reservation) => reservation._id === id) || null;
   };
 
   // Value object to be provided to consumers
@@ -95,11 +133,15 @@ export const ReservationProvider = ({ children }) => {
     reservations,
     loading,
     error,
+    refreshing,
+    autoRefresh,
     fetchReservations,
     addReservation,
-    updateReservation,
+    updateReservations,
+    updateReservationsState,
     removeReservation,
-    getReservationById
+    getReservationById,
+    toggleAutoRefresh,
   };
 
   return (
