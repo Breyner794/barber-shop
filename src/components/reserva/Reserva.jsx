@@ -35,29 +35,29 @@ const Reserva = ({ onSuccess }) => {
   const validateForm = () => {
     // Verificar campos obligatorios
     const requiredFields = [
-      "name",
-      "phone",
-      "date",
-      "hour",
-      "service",
-      "site",
-      "barber",
+      { key:"name", label:"Nombre Completo"},
+      { key: "phone", label: "Telefono"},
+      { key: "service", label: "Servicio"},
+      { key: "date", label: "Fecha"},
+      { key: "hour", label: "Hora"},
+      { key: "site", label: "Sede"},
+      { key: "date", label: "Fecha"},
+      { key: "barber", label: "Barbero"},
     ];
     for (const field of requiredFields) {
-      if (!formData[field]) {
-        return `El campo ${field} es obligatorio`;
+      if (!formData[field.key]) {
+        setSubmitError(`El campo ${field.label} es obligatorio`);
+        setTimeout(() => {
+          setSubmitError(null);
+        }, 9000);
+        return `El campo ${field.label} es obligatorio`;
       }
     }
 
     // Validar formato de teléfono (opcional)
     const phoneRegex = /^\+?[0-9]{8,15}$/;
     if (!phoneRegex.test(formData.phone)) {
-      return "El número de teléfono no es válido";
-    }
-
-    // Validar email si se proporcionó
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      return "El correo electrónico no es válido";
+      return "El número de teléfono no es válido verifica tu numero";
     }
 
     return null;
@@ -112,6 +112,9 @@ const Reserva = ({ onSuccess }) => {
           }`
           : error.message || "Error al guardar la reserva"
       );
+      setTimeout(() => {
+        setSubmitError(null);
+      }, 9000);
     } finally {
       setIsSubmitting(false);
     }
@@ -130,12 +133,12 @@ const Reserva = ({ onSuccess }) => {
             </label>
             <input
               type="text"
+              placeholder="Nombre Completo"
               value={formData.name}
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
               className="w-full p-2 border rounded"
-              required
             />
           </div>
 
@@ -149,12 +152,11 @@ const Reserva = ({ onSuccess }) => {
                 setFormData({ ...formData, phone: e.target.value })
               }
               className="w-full p-2 border rounded"
-              required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
+            <label className="block text-sm font-medium mb-1">Email (Opcional)</label>
             <input
               type="email"
               value={formData.email}
@@ -163,7 +165,6 @@ const Reserva = ({ onSuccess }) => {
                 setFormData({ ...formData, email: e.target.value })
               }
               className="w-full p-2 border rounded"
-              required
             />
           </div>
 
