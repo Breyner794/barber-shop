@@ -495,7 +495,7 @@ const GestionReservas = () => {
                           {reservation.phone}
                         </div>
                         <div className="text-xs text-gray-400">
-                          {reservation.email || "-"}
+                          {reservation.email || "No contiene correo"}
                         </div>
                       </td>
                       <td className="px-4 py-3">
@@ -526,7 +526,14 @@ const GestionReservas = () => {
                       </td>
                       <td className="px-4 py-3">
                         <div className="text-sm font-medium text-gray-900">
-                          {reservation.date}
+                          {new Date(reservation.date).toLocaleDateString(
+                            "es-ES",
+                            {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                            }
+                          )}
                         </div>
                         <div className="text-xs text-gray-500">
                           {reservation.hour}
@@ -666,7 +673,14 @@ const GestionReservas = () => {
                       <div>
                         <p className="text-xs text-gray-500">Fecha</p>
                         <p className="text-sm font-medium">
-                          {reservation.date}
+                          {new Date(reservation.date).toLocaleDateString(
+                            "es-ES",
+                            {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                            }
+                          )}
                         </p>
                       </div>
                       <div>
