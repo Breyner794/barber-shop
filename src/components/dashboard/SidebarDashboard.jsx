@@ -52,9 +52,9 @@ const SidebarDashboard = ({ isOpen, onClose }) => {
       enabled: false,
     },
     {
-      name: "Config",
-      icon: <Settings size={20} />,
-      path: "/dashboard/config",
+      name: "Usuarios",
+      icon: <UserPen size={20} />,
+      path: "/dashboard/usuariosadminpanel",
       enabled: true,
     },
   ];
