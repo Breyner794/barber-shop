@@ -1,13 +1,25 @@
-import { useState } from 'react';
-import logo from '/src/assets/scissors.svg'; // Ajusta la ruta según tu estructura
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/authContext';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
     email: '',
     password: ''
   });
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { login, error, isAuthenticated } = useAuth();
+
+  const { email, password } = credentials;
 
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+
+  useEffect(()=>{
+    if (isAuthenticated){
+      navigate('/dashboard');
+    }
+  },[isAuthenticated, navigate]);
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
@@ -19,10 +31,16 @@ const Login = () => {
     console.log('Enviando email de recuperación a:', credentials.email);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Aquí irá la lógica de autenticación
-    console.log(credentials);
+    setLoading(true);
+
+    const success = await login(email, password);
+
+    if(success){
+      navigate('/dashboard')
+    }
+    setLoading(false);
   };
 
   return (
@@ -31,12 +49,12 @@ const Login = () => {
         {/* Logo y Título */}
         <div className="text-center mb-8">
           <img 
-            src={logo} 
+            src='src/assets/caballerosdelsenor.svg'
             alt="BarberJunior Logo" 
             className="mx-auto h-20 w-20 mb-4"
           />
           <h2 className="text-2xl font-bold text-barber-primary">
-            Dashboard
+            Inicio de sesion
           </h2>
         </div>
 

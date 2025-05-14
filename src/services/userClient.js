@@ -51,3 +51,14 @@ export const deleteUser = async (id) => {
     throw error;
   }
 };
+
+export const getMe = async () =>{
+  try{
+    const response = await axios.get(`${API_URL}/user/me`);
+    return response.data; 
+  }catch (error){
+    console.log ("No se pudo encontrar tu perfil")
+    throw error;
+  }
+    
+}

@@ -12,6 +12,16 @@ export const getAllSite = async () => {
   }
 };
 
+export const getSiteById = async (id) => {
+  try {
+    const response = await axios.get(`${API_URL}/site/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching site with id ${id}:`, error);
+    throw error;
+  }
+}
+
 export const createSite = async (siteData) => {
     try{
         const response = await axios.post(`${API_URL}/site`, siteData);

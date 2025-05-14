@@ -11,8 +11,7 @@ const BarberosForm = ({ formData, setFormData, selectedBarber, setSelectedBarber
   // console.log('Barberos:', barbers); // Verifica los datos de barberos
   // console.log('Sede seleccionada:', formData.sede); // Verifica la sede seleccionada
 
-  const barberosFiltrados = barber.filter(
-    (barbero) => barbero.site === formData.site
+  const barberosFiltrados = barber.filter((barbero) => barbero.site === formData.site
   );
 
   // console.log('Barberos filtrados:', barberosFiltrados); // Verifica los barberos filtrados
